@@ -9,21 +9,27 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
 })
 
 export default function CodeEditor() {
-  const { code, setCode } = useExecutionStore()
+  const { tabs, activeTabId, updateTab } =
+    useExecutionStore()
   const { resolvedTheme } = useTheme()
+
+  const activeTab = tabs.find((t) => t.id === activeTabId)
+
+  if (!activeTab) return null
 
   return (
     <div className="h-full w-full">
       <MonacoEditor
         height="100%"
-        defaultLanguage="javascript"
+        language={activeTab.language}
         theme={resolvedTheme === "dark" ? "vs-dark" : "vs"}
-        value={code}
-        onChange={(value) => setCode(value || "")}
+        value={activeTab.code}
+        onChange={(value) =>
+          updateTab(activeTab.id, { code: value || "" })
+        }
         options={{
           fontSize: 14,
           minimap: { enabled: false },
-          scrollBeyondLastLine: false,
           automaticLayout: true,
         }}
       />

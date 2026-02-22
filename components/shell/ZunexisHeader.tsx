@@ -1,91 +1,112 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Loader2, Play, Trash2 } from "lucide-react"
-import { useExecutionStore } from "@/store/useExecutionStore"
-import ZunexisLogo from "@/components/shared/ZunexisLogo"
-import ThemeToggle from "@/components/shared/ThemeToggle"
-import LayoutSwitcher from "@/components/shared/LayoutSwitcher"
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Play, Trash2 } from "lucide-react";
+import { useExecutionStore } from "@/store/useExecutionStore";
+import ZunexisLogo from "@/components/shared/ZunexisLogo";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
 export default function ZunexisHeader() {
-  const { code, setOutput, clear, status, setStatus } =
-    useExecutionStore()
+  const { tabs, activeTabId, updateTab, clearOutput } = useExecutionStore();
 
-  const workerRef = useRef<Worker | null>(null)
-
-  useEffect(() => {
-    const worker = new Worker("/codeWorker.js")
-
-    worker.onmessage = (e) => {
-      const { type, logs } = e.data
-      setOutput(logs)
-      setStatus(type === "success" ? "success" : "error")
-    }
-
-    workerRef.current = worker
-    return () => worker.terminate()
-  }, [setOutput, setStatus])
+  const activeTab = tabs.find((t) => t.id === activeTabId);
+  if (!activeTab) return null;
 
   const runCode = () => {
-    setStatus("running")
+    if (!activeTab) return;
 
-    try {
-      new Function(`"use strict";\n${code}`)
-    } catch (error: any) {
-      setOutput([error.toString()])
-      setStatus("error")
-      return
-    }
+    updateTab(activeTab.id, {
+      status: "running",
+      output: [],
+    });
 
-    workerRef.current?.postMessage(code)
-  }
+    const worker = new Worker("/codeWorker.js");
+
+    const timeout = setTimeout(() => {
+      worker.terminate();
+      useExecutionStore.getState().updateTab(activeTab.id, {
+        status: "success",
+      });
+    }, 3000);
+
+    worker.onmessage = (e) => {
+      const { type, logs, tabId } = e.data;
+
+      const store = useExecutionStore.getState();
+      const currentTab = store.tabs.find((t) => t.id === tabId);
+      if (!currentTab) return;
+
+      if (type === "log") {
+        store.updateTab(tabId, {
+          output: [...currentTab.output, ...logs],
+        });
+        return;
+      }
+
+      if (type === "clear") {
+        store.updateTab(tabId, { output: [] });
+        return;
+      }
+
+      if (type === "error") {
+        clearTimeout(timeout);
+        worker.terminate();
+
+        store.updateTab(tabId, {
+          output: logs,
+          status: "error",
+        });
+        return;
+      }
+
+      if (type === "done") {
+        clearTimeout(timeout);
+        worker.terminate();
+
+        store.updateTab(tabId, {
+          status: "success",
+        });
+      }
+    };
+
+    worker.postMessage({
+      code: activeTab.code,
+      tabId: activeTab.id,
+    });
+  };
 
   const statusStyles = {
     idle: "bg-muted text-muted-foreground",
     running: "bg-primary text-primary-foreground",
     success: "bg-emerald-500 text-white",
     error: "bg-red-500 text-white",
-  }
+  };
 
   return (
     <header className="sticky top-0 z-50">
-
-      <div
-        className="
-          h-16
-          flex items-center justify-between
-          px-8
-          bg-background
-          border-b border-border
-          shadow-sm
-        "
-      >
-
+      <div className="h-16 flex items-center justify-between px-8 bg-background border-b border-border shadow-sm">
         {/* Left Section */}
         <div className="flex items-center gap-6">
           <ZunexisLogo />
 
           <Badge
-            className={`rounded-full px-3 py-1 text-xs font-medium ${statusStyles[status]}`}
+            className={`rounded-full px-3 py-1 text-xs font-medium ${statusStyles[activeTab.status]}`}
           >
-            {status.toUpperCase()}
+            {activeTab.status.toUpperCase()}
           </Badge>
         </div>
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
-
-          <LayoutSwitcher />
           <ThemeToggle />
 
           <Button
             onClick={runCode}
-            disabled={status === "running"}
+            disabled={activeTab.status === "running"}
             className="flex items-center gap-2 shadow-sm"
           >
-            {status === "running" ? (
+            {activeTab.status === "running" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Executing
@@ -100,17 +121,14 @@ export default function ZunexisHeader() {
 
           <Button
             variant="secondary"
-            onClick={clear}
+            onClick={() => clearOutput(activeTab.id)}
             className="flex items-center gap-2"
           >
             <Trash2 className="h-4 w-4" />
             Clear
           </Button>
-
         </div>
-
       </div>
-
     </header>
-  )
+  );
 }
