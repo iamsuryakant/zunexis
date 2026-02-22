@@ -1,16 +1,45 @@
 self.onmessage = function (e) {
-  const code = e.data
+  const { code, tabId } = e.data
 
-  let logs = []
+  const MAX_LOGS = 1000
+  let logCount = 0
+
+  const sendLog = (message) => {
+    if (logCount >= MAX_LOGS) return
+    logCount++
+
+    self.postMessage({
+      type: "log",
+      logs: [message],
+      tabId,
+    })
+  }
 
   const consoleMock = {
-    log: (...args) => logs.push(args.join(" "))
+    log: (...args) => sendLog(args.join(" ")),
+    error: (...args) => sendLog(args.join(" ")),
+    warn: (...args) => sendLog(args.join(" ")),
+    clear: () =>
+      self.postMessage({
+        type: "clear",
+        tabId,
+      }),
   }
 
   try {
     new Function("console", `"use strict";\n${code}`)(consoleMock)
-    self.postMessage({ type: "success", logs })
+
+    // 🔥 Signal that sync execution finished
+    self.postMessage({
+      type: "done",
+      tabId,
+    })
+
   } catch (error) {
-    self.postMessage({ type: "error", logs: [error.toString()] })
+    self.postMessage({
+      type: "error",
+      logs: [error.toString()],
+      tabId,
+    })
   }
 }
