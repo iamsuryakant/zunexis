@@ -30,7 +30,7 @@ export default function ThemeToggle() {
 
   return (
     <Button
-      variant="secondary"
+      variant="ghost"
       size="icon"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className="relative transition-all duration-300 hover:scale-105"

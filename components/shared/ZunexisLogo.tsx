@@ -45,7 +45,7 @@ export default function ZunexisLogo() {
         <span className="text-lg font-semibold tracking-wide text-foreground">
           Zunexis
         </span>
-        <span className="text-[10px] text-slate-400 tracking-widest">
+        <span className="text-[10px] text-slate-500 tracking-widest">
           CODE • COMPILE • EXECUTE
         </span>
       </div>
