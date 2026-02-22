@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react"
 import ZunexisHeader from "./ZunexisHeader"
+import ZunexisFooter from "./ZunexisFooter"
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -12,6 +13,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <main className="flex-1 overflow-hidden bg-muted/40 px-8 py-6">
         {children}
       </main>
+
+      <ZunexisFooter />
 
     </div>
   )

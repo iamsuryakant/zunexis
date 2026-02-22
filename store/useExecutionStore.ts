@@ -1,38 +1,34 @@
-import { create } from "zustand"
-import { nanoid } from "nanoid"
+import { create } from "zustand";
+import { nanoid } from "nanoid";
 
-export type Status = "idle" | "running" | "success" | "error"
+export type Status = "idle" | "running" | "success" | "error";
 
-export type Language =
-  | "javascript"
-  | "python"
-  | "cpp"
-  | "java"
+export type Language = "javascript" | "python" | "cpp" | "java";
 
 export interface Tab {
-  id: string
-  name: string
-  language: Language
-  code: string
-  output: string[]
-  status: Status
+  id: string;
+  name: string;
+  language: Language;
+  code: string;
+  output: string[];
+  status: Status;
 }
 
 interface ExecutionState {
-  tabs: Tab[]
-  activeTabId: string
+  tabs: Tab[];
+  activeTabId: string;
 
-  setActiveTab: (id: string) => void
-  addTab: () => void
-  closeTab: (id: string) => void
-  updateTab: (id: string, data: Partial<Tab>) => void
-  clearOutput: (id: string) => void
-  layout: "bottom" | "left" | "right"
-setLayout: (layout: "bottom" | "left" | "right") => void
+  setActiveTab: (id: string) => void;
+  addTab: () => void;
+  closeTab: (id: string) => void;
+  updateTab: (id: string, data: Partial<Tab>) => void;
+  clearOutput: (id: string) => void;
+  layout: "bottom" | "left" | "right";
+  setLayout: (layout: "bottom" | "left" | "right") => void;
 }
 
 export const useExecutionStore = create<ExecutionState>((set, get) => {
-  const initialId = nanoid()
+  const initialId = nanoid();
 
   return {
     tabs: [
@@ -48,11 +44,11 @@ export const useExecutionStore = create<ExecutionState>((set, get) => {
     activeTabId: initialId,
 
     setActiveTab: (id) => set({ activeTabId: id }),
-    layout: "bottom",
+    layout: "right",
     setLayout: (layout) => set({ layout }),
 
     addTab: () => {
-      const newId = nanoid()
+      const newId = nanoid();
       set((state) => ({
         tabs: [
           ...state.tabs,
@@ -66,36 +62,32 @@ export const useExecutionStore = create<ExecutionState>((set, get) => {
           },
         ],
         activeTabId: newId,
-      }))
+      }));
     },
 
     closeTab: (id) => {
       set((state) => {
-        const filtered = state.tabs.filter((t) => t.id !== id)
+        const filtered = state.tabs.filter((t) => t.id !== id);
         return {
           tabs: filtered,
           activeTabId:
             state.activeTabId === id && filtered.length
               ? filtered[0].id
               : state.activeTabId,
-        }
-      })
+        };
+      });
     },
 
     updateTab: (id, data) => {
       set((state) => ({
-        tabs: state.tabs.map((t) =>
-          t.id === id ? { ...t, ...data } : t
-        ),
-      }))
+        tabs: state.tabs.map((t) => (t.id === id ? { ...t, ...data } : t)),
+      }));
     },
 
     clearOutput: (id) => {
       set((state) => ({
-        tabs: state.tabs.map((t) =>
-          t.id === id ? { ...t, output: [] } : t
-        ),
-      }))
+        tabs: state.tabs.map((t) => (t.id === id ? { ...t, output: [] } : t)),
+      }));
     },
-  }
-})
+  };
+});

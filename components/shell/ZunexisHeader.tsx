@@ -2,10 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Play, Trash2 } from "lucide-react";
+import { Github, Loader2, Play, Trash2 } from "lucide-react";
 import { useExecutionStore } from "@/store/useExecutionStore";
 import ZunexisLogo from "@/components/shared/ZunexisLogo";
 import ThemeToggle from "@/components/shared/ThemeToggle";
+import Link from "next/link";
+import { IconBrandGithub } from "@tabler/icons-react";
 
 export default function ZunexisHeader() {
   const { tabs, activeTabId, updateTab, clearOutput } = useExecutionStore();
@@ -16,36 +18,40 @@ export default function ZunexisHeader() {
   const runCode = () => {
     if (!activeTab) return;
 
-    updateTab(activeTab.id, {
+    const store = useExecutionStore.getState();
+
+    store.updateTab(activeTab.id, {
       status: "running",
       output: [],
     });
 
     const worker = new Worker("/codeWorker.js");
 
+    const EXECUTION_LIMIT = 3000;
+
     const timeout = setTimeout(() => {
       worker.terminate();
+
       useExecutionStore.getState().updateTab(activeTab.id, {
         status: "success",
       });
-    }, 3000);
+    }, EXECUTION_LIMIT);
 
     worker.onmessage = (e) => {
       const { type, logs, tabId } = e.data;
-
-      const store = useExecutionStore.getState();
-      const currentTab = store.tabs.find((t) => t.id === tabId);
+      const currentStore = useExecutionStore.getState();
+      const currentTab = currentStore.tabs.find((t) => t.id === tabId);
       if (!currentTab) return;
 
       if (type === "log") {
-        store.updateTab(tabId, {
+        currentStore.updateTab(tabId, {
           output: [...currentTab.output, ...logs],
         });
         return;
       }
 
       if (type === "clear") {
-        store.updateTab(tabId, { output: [] });
+        currentStore.updateTab(tabId, { output: [] });
         return;
       }
 
@@ -53,19 +59,9 @@ export default function ZunexisHeader() {
         clearTimeout(timeout);
         worker.terminate();
 
-        store.updateTab(tabId, {
+        currentStore.updateTab(tabId, {
           output: logs,
           status: "error",
-        });
-        return;
-      }
-
-      if (type === "done") {
-        clearTimeout(timeout);
-        worker.terminate();
-
-        store.updateTab(tabId, {
-          status: "success",
         });
       }
     };
@@ -127,6 +123,15 @@ export default function ZunexisHeader() {
             <Trash2 className="h-4 w-4" />
             Clear
           </Button>
+
+          <Link
+            href="https://github.com/iamsuryakant/zunexis"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
+          >
+            <IconBrandGithub className="h-6 w-6" />
+          </Link>
         </div>
       </div>
     </header>

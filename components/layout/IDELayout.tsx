@@ -46,7 +46,7 @@ export default function IDELayout() {
             </Panel>
 
             <ResizeHandle className="w-2 cursor-col-resize flex items-center justify-center">
-              <div className="w-[2px] h-12 bg-border rounded-full" />
+              <div className="w-0.5 h-12 bg-border rounded-full" />
             </ResizeHandle>
           </>
         )}
@@ -79,8 +79,8 @@ export default function IDELayout() {
               <div
                 className={
                   isVertical
-                    ? "h-[2px] w-16 bg-border rounded-full"
-                    : "w-[2px] h-12 bg-border rounded-full"
+                    ? "h-0.5 w-16 bg-border rounded-full"
+                    : "w-0.5 h-12 bg-border rounded-full"
                 }
               />
             </ResizeHandle>

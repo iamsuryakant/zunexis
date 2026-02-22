@@ -28,13 +28,6 @@ self.onmessage = function (e) {
 
   try {
     new Function("console", `"use strict";\n${code}`)(consoleMock)
-
-    // 🔥 Signal that sync execution finished
-    self.postMessage({
-      type: "done",
-      tabId,
-    })
-
   } catch (error) {
     self.postMessage({
       type: "error",
