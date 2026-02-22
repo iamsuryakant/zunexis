@@ -8,7 +8,7 @@ export default function ZunexisFooter() {
       <div className="mx-auto flex h-10 max-w-7xl items-center justify-center gap-2 px-6 text-xs text-muted-foreground">
 
         <span className="whitespace-nowrap">
-          © 2025 Zunexis by Suryakant Thakur. All rights reserved.
+          © {new Date().getFullYear()} Zunexis by Suryakant Thakur. All rights reserved.
         </span>
 
         <span className="hidden sm:inline-flex items-center gap-1 opacity-80">
