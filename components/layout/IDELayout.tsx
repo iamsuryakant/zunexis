@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import {
   PanelGroup,
   Panel,
@@ -14,11 +15,21 @@ import TabBar from "../editor/TabBar"
 
 export default function IDELayout() {
   const { tabs, activeTabId, layout } = useExecutionStore()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   const activeTab = tabs.find((t) => t.id === activeTabId)
   if (!activeTab) return null
 
-  const isVertical = layout === "bottom"
+  const effectiveLayout = isMobile ? "bottom" : layout
+
+  const isVertical = effectiveLayout === "bottom"
 
   const statusStyles = {
     running: "border-primary/40 shadow-sm",
@@ -29,15 +40,13 @@ export default function IDELayout() {
 
   return (
     <div className="h-full w-full">
-
       <PanelGroup
         direction={isVertical ? "vertical" : "horizontal"}
         autoSaveId="zunexis-layout"
         className="h-full w-full"
       >
-
-        {/* LEFT CONSOLE */}
-        {layout === "left" && (
+        
+        {!isMobile && effectiveLayout === "left" && (
           <>
             <Panel defaultSize={30} minSize={20} className="overflow-hidden">
               <Card className="h-full bg-card border border-border rounded-2xl shadow-sm">
@@ -51,7 +60,7 @@ export default function IDELayout() {
           </>
         )}
 
-        {/* EDITOR PANEL */}
+        
         <Panel defaultSize={70} minSize={40} className="overflow-hidden">
           <Card
             className={cn(
@@ -66,8 +75,7 @@ export default function IDELayout() {
           </Card>
         </Panel>
 
-        {/* BOTTOM OR RIGHT CONSOLE */}
-        {layout !== "left" && (
+        {effectiveLayout !== "left" && (
           <>
             <ResizeHandle
               className={
@@ -92,9 +100,7 @@ export default function IDELayout() {
             </Panel>
           </>
         )}
-
       </PanelGroup>
-
     </div>
   )
 }

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Github, Loader2, Play, Trash2 } from "lucide-react";
+import { Loader2, Play, Trash2 } from "lucide-react";
 import { useExecutionStore } from "@/store/useExecutionStore";
 import ZunexisLogo from "@/components/shared/ZunexisLogo";
 import ThemeToggle from "@/components/shared/ThemeToggle";
@@ -11,13 +11,10 @@ import { IconBrandGithub } from "@tabler/icons-react";
 
 export default function ZunexisHeader() {
   const { tabs, activeTabId, updateTab, clearOutput } = useExecutionStore();
-
   const activeTab = tabs.find((t) => t.id === activeTabId);
   if (!activeTab) return null;
 
   const runCode = () => {
-    if (!activeTab) return;
-
     const store = useExecutionStore.getState();
 
     store.updateTab(activeTab.id, {
@@ -26,12 +23,10 @@ export default function ZunexisHeader() {
     });
 
     const worker = new Worker("/codeWorker.js");
-
     const EXECUTION_LIMIT = 3000;
 
     const timeout = setTimeout(() => {
       worker.terminate();
-
       useExecutionStore.getState().updateTab(activeTab.id, {
         status: "success",
       });
@@ -58,7 +53,6 @@ export default function ZunexisHeader() {
       if (type === "error") {
         clearTimeout(timeout);
         worker.terminate();
-
         currentStore.updateTab(tabId, {
           output: logs,
           status: "error",
@@ -80,58 +74,65 @@ export default function ZunexisHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50">
-      <div className="h-16 flex items-center justify-between px-8 bg-background border-b border-border shadow-sm">
-        {/* Left Section */}
-        <div className="flex items-center gap-6">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur">
+      <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-8">
+
+        
+        <div className="flex items-center gap-3 md:gap-6">
           <ZunexisLogo />
 
           <Badge
-            className={`rounded-full px-3 py-1 text-xs font-medium ${statusStyles[activeTab.status]}`}
+            className={`rounded-full px-2 md:px-3 py-0.5 text-[10px] md:text-xs font-medium ${statusStyles[activeTab.status]}`}
           >
             {activeTab.status.toUpperCase()}
           </Badge>
         </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-3">
+        
+        <div className="flex items-center gap-2 md:gap-3">
+
           <ThemeToggle />
 
+         
           <Button
+            size="sm"
             onClick={runCode}
             disabled={activeTab.status === "running"}
-            className="flex items-center gap-2 shadow-sm"
+            className="flex items-center gap-2"
           >
             {activeTab.status === "running" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Executing
+                <span className="hidden md:inline">Executing</span>
               </>
             ) : (
               <>
                 <Play className="h-4 w-4" />
-                Run
+                <span className="hidden md:inline">Run</span>
               </>
             )}
           </Button>
 
+          
           <Button
+            size="sm"
             variant="secondary"
             onClick={() => clearOutput(activeTab.id)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1"
           >
             <Trash2 className="h-4 w-4" />
-            Clear
+            <span className="hidden md:inline">Clear</span>
           </Button>
 
+          
           <Link
             href="https://github.com/iamsuryakant/zunexis"
             target="_blank"
-            rel="noopener noreferrer"
             className="flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
           >
-            <IconBrandGithub className="h-6 w-6" />
+            <IconBrandGithub className="h-5 w-5 md:h-6 md:w-6" />
           </Link>
+
         </div>
       </div>
     </header>
