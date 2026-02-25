@@ -1,38 +1,22 @@
-"use client"
+"use client";
 
-import { useExecutionStore } from "@/store/useExecutionStore"
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LANGUAGES } from "@/lib/languages";
 
-export default function LanguageSelector() {
-  const { tabs, activeTabId, updateTab } = useExecutionStore()
-
-  const activeTab = tabs.find((t) => t.id === activeTabId)
-
-  if (!activeTab) return null
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function LanguageSelector({ value, onChange }: any) {
   return (
-    <Select
-      value={activeTab.language}
-      onValueChange={(value) =>
-        updateTab(activeTab.id, { language: value as any })
-      }
-    >
-      <SelectTrigger className="w-37.5">
-        <SelectValue />
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-50">
+        <SelectValue placeholder="Select Language" />
       </SelectTrigger>
-
       <SelectContent>
-        <SelectItem value="javascript">JavaScript</SelectItem>
-        <SelectItem value="python">Python</SelectItem>
-        <SelectItem value="cpp">C++</SelectItem>
-        <SelectItem value="java">Java</SelectItem>
+        {LANGUAGES.map((lang) => (
+          <SelectItem key={lang.key} value={lang.key}>
+            {lang.label}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
-  )
+  );
 }

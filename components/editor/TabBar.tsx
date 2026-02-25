@@ -1,131 +1,148 @@
 "use client";
 
-import { X, Plus, Play, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useRef } from "react";
 import { useExecutionStore } from "@/store/useExecutionStore";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Play, Loader2, X, Terminal } from "lucide-react";
+
+const languages = [
+  { label: "JavaScript", value: "javascript" },
+  { label: "Python", value: "python" },
+  { label: "C++", value: "cpp" },
+  { label: "Java", value: "java" },
+  { label: "C", value: "c" },
+  { label: "Bash", value: "bash" },
+];
 
 export default function TabBar() {
-  const { tabs, activeTabId, setActiveTab, addTab, closeTab, updateTab } =
-    useExecutionStore();
+  const {
+    tabs,
+    activeTabId,
+    setActiveTab,
+    addTab,
+    closeTab,
+    executeCode,
+    switchLanguage,
+    toggleConsole,
+  } = useExecutionStore();
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
+  const isRunning = activeTab?.status === "running";
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const activeEl = container.querySelector(
+      `[data-tab-id="${activeTabId}"]`,
+    ) as HTMLElement | null;
+
+    activeEl?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [activeTabId]);
+
   if (!activeTab) return null;
 
-  const runCode = () => {
-    const store = useExecutionStore.getState();
-
-    store.updateTab(activeTab.id, {
-      status: "running",
-      output: [],
-    });
-
-    const worker = new Worker("/codeWorker.js");
-    const EXECUTION_LIMIT = 3000;
-
-    const timeout = setTimeout(() => {
-      worker.terminate();
-      useExecutionStore.getState().updateTab(activeTab.id, {
-        status: "success",
-      });
-    }, EXECUTION_LIMIT);
-
-    worker.onmessage = (e) => {
-      const { type, logs, tabId } = e.data;
-      const currentStore = useExecutionStore.getState();
-      const currentTab = currentStore.tabs.find((t) => t.id === tabId);
-      if (!currentTab) return;
-
-      if (type === "log") {
-        currentStore.updateTab(tabId, {
-          output: [...currentTab.output, ...logs],
-        });
-        return;
-      }
-
-      if (type === "clear") {
-        currentStore.updateTab(tabId, { output: [] });
-        return;
-      }
-
-      if (type === "error") {
-        clearTimeout(timeout);
-        worker.terminate();
-
-        currentStore.updateTab(tabId, {
-          output: logs,
-          status: "error",
-        });
-      }
-    };
-
-    worker.postMessage({
-      code: activeTab.code,
-      tabId: activeTab.id,
-    });
-  };
-
-  const statusStyles = {
-    idle: "bg-muted text-muted-foreground",
-    running: "bg-primary text-primary-foreground",
-    success: "bg-emerald-500 text-white",
-    error: "bg-red-500 text-white",
-  };
-
   return (
-    <div className="flex items-center border-b border-border bg-muted/40 px-4 h-12">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-          {tabs.map((tab) => (
-            <div
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                shrink-0 flex items-center gap-2 px-4 py-2
-                rounded-t-lg cursor-pointer text-sm whitespace-nowrap
-                ${
-                  activeTabId === tab.id
-                    ? "bg-background border border-border border-b-0 text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }
-              `}
-            >
-              {tab.name}
+    <div className="h-14 shrink-0 border-b bg-background flex items-center px-4">
+      <div
+        ref={scrollRef}
+        className="flex-1 flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide"
+      >
+        {tabs.map((tab) => (
+          <div
+            key={tab.id}
+            data-tab-id={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-3 h-8 rounded-md text-xs cursor-pointer transition shrink-0
+              ${
+                tab.id === activeTabId
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/60"
+              }`}
+          >
+            {tab.status === "running" && (
+              <Loader2 className="h-3 w-3 animate-spin text-primary" />
+            )}
+            <span className="truncate max-w-30">{tab.name}</span>
 
-              {tabs.length > 1 && (
-                <X
-                  className="h-3 w-3 opacity-70 hover:opacity-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    closeTab(tab.id);
-                  }}
-                />
-              )}
-            </div>
-          ))}
-          <Button size="icon" variant="ghost" onClick={addTab} className="ml-2">
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 ml-3">
-        <Badge className={`text-xs ${statusStyles[activeTab.status]}`}>
-          {activeTab.status.toUpperCase()}
-        </Badge>
+            <X
+              className="h-3 w-3 opacity-40 hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                closeTab(tab.id);
+              }}
+            />
+          </div>
+        ))}
 
         <Button
           size="sm"
-          onClick={runCode}
-          disabled={activeTab.status === "running"}
-          className="flex items-center gap-2"
+          variant="ghost"
+          onClick={addTab}
+          className="h-8 text-xs shrink-0"
         >
-          {activeTab.status === "running" ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+          +
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-3 shrink-0 ml-4">
+        <Select
+          value={activeTab.language}
+          onValueChange={(val) =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            switchLanguage(activeTab.id, val as any)
+          }
+        >
+          <SelectTrigger className="w-32.5 h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {languages.map((lang) => (
+              <SelectItem key={lang.value} value={lang.value}>
+                {lang.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button
+          size="sm"
+          disabled={isRunning}
+          onClick={executeCode}
+          className="h-8 text-xs min-w-23.75"
+        >
+          {isRunning ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              Running
+            </>
           ) : (
-            <Play className="h-4 w-4" />
+            <>
+              <Play className="h-4 w-4 mr-1" />
+              Run
+            </>
           )}
-          <span className="hidden md:inline">Run</span>
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={toggleConsole}
+          className="h-8 w-8"
+        >
+          <Terminal className="h-4 w-4" />
         </Button>
       </div>
     </div>

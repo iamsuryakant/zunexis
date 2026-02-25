@@ -1,105 +1,70 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import {
   PanelGroup,
   Panel,
-  PanelResizeHandle as ResizeHandle,
+  PanelResizeHandle,
 } from "react-resizable-panels"
-import { Card } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { AnimatePresence } from "framer-motion"
+
 import { useExecutionStore } from "@/store/useExecutionStore"
 import CodeEditor from "../editor/CodeEditor"
-import ExecutionConsole from "../console/ExecutionConsole"
 import TabBar from "../editor/TabBar"
+import { AnimatedConsole } from "../console/AnimatedConsole"
 
 export default function IDELayout() {
-  const { tabs, activeTabId, layout } = useExecutionStore()
-  const [isMobile, setIsMobile] = useState(false)
+  const { layout, isConsoleCollapsed } = useExecutionStore()
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener("resize", check)
-    return () => window.removeEventListener("resize", check)
-  }, [])
-
-  const activeTab = tabs.find((t) => t.id === activeTabId)
-  if (!activeTab) return null
-
-  const effectiveLayout = isMobile ? "bottom" : layout
-
-  const isVertical = effectiveLayout === "bottom"
-
-  const statusStyles = {
-    running: "border-primary/40 shadow-sm",
-    success: "border-emerald-500/40 shadow-sm",
-    error: "border-red-500/40 shadow-sm",
-    idle: "border-border shadow-sm",
-  }
+  const isVertical = layout === "bottom"
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full overflow-hidden">
+
       <PanelGroup
         direction={isVertical ? "vertical" : "horizontal"}
-        autoSaveId="zunexis-layout"
         className="h-full w-full"
       >
-        
-        {!isMobile && effectiveLayout === "left" && (
-          <>
-            <Panel defaultSize={30} minSize={20} className="overflow-hidden">
-              <Card className="h-full bg-card border border-border rounded-2xl shadow-sm">
-                <ExecutionConsole />
-              </Card>
-            </Panel>
 
-            <ResizeHandle className="w-2 cursor-col-resize flex items-center justify-center">
-              <div className="w-0.5 h-12 bg-border rounded-full" />
-            </ResizeHandle>
+        {/* LEFT CONSOLE */}
+        {layout === "left" && !isConsoleCollapsed && (
+          <>
+            <Panel defaultSize={30} minSize={20}>
+              <AnimatedConsole layout="left" />
+            </Panel>
+            <PanelResizeHandle className="bg-border w-1 cursor-col-resize" />
           </>
         )}
 
-        
-        <Panel defaultSize={70} minSize={40} className="overflow-hidden">
-          <Card
-            className={cn(
-              "h-full flex flex-col bg-card rounded-2xl transition-all duration-200",
-              statusStyles[activeTab.status]
-            )}
-          >
+        {/* EDITOR */}
+        <Panel minSize={40}>
+          <div className="h-full flex flex-col">
             <TabBar />
             <div className="flex-1 overflow-hidden">
               <CodeEditor />
             </div>
-          </Card>
+          </div>
         </Panel>
 
-        {effectiveLayout !== "left" && (
-          <>
-            <ResizeHandle
-              className={
-                isVertical
-                  ? "h-2 cursor-row-resize flex items-center justify-center"
-                  : "w-2 cursor-col-resize flex items-center justify-center"
-              }
-            >
-              <div
-                className={
-                  isVertical
-                    ? "h-0.5 w-16 bg-border rounded-full"
-                    : "w-0.5 h-12 bg-border rounded-full"
-                }
-              />
-            </ResizeHandle>
-
-            <Panel defaultSize={30} minSize={20} className="overflow-hidden">
-              <Card className="h-full bg-card border border-border rounded-2xl shadow-sm">
-                <ExecutionConsole />
-              </Card>
-            </Panel>
-          </>
+        {/* RIGHT / BOTTOM CONSOLE */}
+        {(layout === "right" || layout === "bottom") && (
+          <AnimatePresence>
+            {!isConsoleCollapsed && (
+              <>
+                <PanelResizeHandle
+                  className={
+                    isVertical
+                      ? "bg-border h-1 cursor-row-resize"
+                      : "bg-border w-1 cursor-col-resize"
+                  }
+                />
+                <Panel defaultSize={30} minSize={20}>
+                  <AnimatedConsole layout={layout} />
+                </Panel>
+              </>
+            )}
+          </AnimatePresence>
         )}
+
       </PanelGroup>
     </div>
   )
