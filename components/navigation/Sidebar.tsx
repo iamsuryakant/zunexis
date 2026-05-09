@@ -8,7 +8,11 @@ import { motion, AnimatePresence } from "framer-motion"
 import { FilePlus, FolderPlus, Files, Search, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function Sidebar() {
+interface SidebarProps {
+  width?: number;
+}
+
+export default function Sidebar({ width = 256 }: SidebarProps) {
   const { sidebarView, setSidebarView, setCreating } = useExecutionStore()
 
   const viewLabels: Record<string, string> = {
@@ -21,29 +25,32 @@ export default function Sidebar() {
     <div className="flex h-full w-full">
       {/* --- Activity Bar (Icon Strip) --- */}
       <nav className="w-12 flex flex-col items-center py-4 gap-4 bg-background border-r border-border/40 z-20">
-        <ActivityIcon 
-          active={sidebarView === 'explorer'} 
-          onClick={() => setSidebarView('explorer')} 
-          icon={<Files size={20} />} 
+        <ActivityIcon
+          active={sidebarView === 'explorer'}
+          onClick={() => setSidebarView('explorer')}
+          icon={<Files size={20} />}
           label="Explorer"
         />
-        <ActivityIcon 
-          active={sidebarView === 'search'} 
-          onClick={() => setSidebarView('search')} 
-          icon={<Search size={20} />} 
+        <ActivityIcon
+          active={sidebarView === 'search'}
+          onClick={() => setSidebarView('search')}
+          icon={<Search size={20} />}
           label="Search"
         />
-        <div className="flex-1" /> {/* Spacer */}
-        <ActivityIcon 
-          active={sidebarView === 'settings'} 
-          onClick={() => setSidebarView('settings')} 
-          icon={<Settings size={20} />} 
+        <div className="flex-1" />
+        <ActivityIcon
+          active={sidebarView === 'settings'}
+          onClick={() => setSidebarView('settings')}
+          icon={<Settings size={20} />}
           label="Settings"
         />
       </nav>
 
       {/* --- Sidebar Panel --- */}
-      <aside className="flex-1 flex flex-col bg-background/50 backdrop-blur-sm border-r border-border/40 select-none overflow-hidden">
+      <aside
+        className="flex flex-col h-full bg-background/50 backdrop-blur-sm border-r border-border/40 select-none overflow-hidden"
+        style={{ width }}
+      >
         {/* Dynamic Header */}
         <div className="flex h-12 items-center justify-between px-4 border-b border-border/10">
           <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
@@ -52,19 +59,19 @@ export default function Sidebar() {
 
           <AnimatePresence mode="wait">
             {sidebarView === 'explorer' && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 className="flex items-center gap-1"
               >
-                <HeaderAction 
-                  onClick={() => setCreating({ parentId: 'root', type: 'file' })} 
-                  icon={<FilePlus size={14} />} 
+                <HeaderAction
+                  onClick={() => setCreating({ parentId: 'root', type: 'file' })}
+                  icon={<FilePlus size={14} />}
                 />
-                <HeaderAction 
-                  onClick={() => setCreating({ parentId: 'root', type: 'folder' })} 
-                  icon={<FolderPlus size={14} />} 
+                <HeaderAction
+                  onClick={() => setCreating({ parentId: 'root', type: 'folder' })}
+                  icon={<FolderPlus size={14} />}
                 />
               </motion.div>
             )}
@@ -105,10 +112,10 @@ function ActivityIcon({ active, onClick, icon, label }: any) {
     >
       {icon}
       {active && (
-        <motion.div 
+        <motion.div
           layoutId="activeIndicator"
           className="absolute left-0 w-1 h-6 bg-primary rounded-r-full"
-          style={{ left: -12 }} // Sits on the border
+          style={{ left: -12 }}
         />
       )}
     </button>

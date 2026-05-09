@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
+import { useState, useRef, useCallback, useEffect } from "react"
 import Sidebar from "@/components/navigation/Sidebar"
 import CodeEditor from "@/components/editor/CodeEditor"
 import TabBar from "@/components/editor/TabBar"
@@ -9,28 +8,47 @@ import ExecutionConsole from "@/components/console/ExecutionConsole"
 import { useExecutionStore } from "@/stores/useExecutionStore"
 import { Menu, X } from "lucide-react"
 
-function ResizeHandle({ direction = "horizontal" }: { direction?: "horizontal" | "vertical" }) {
-  return (
-    <PanelResizeHandle
-      className={`
-        relative flex items-center justify-center
-        ${direction === "horizontal" ? "w-1 cursor-col-resize" : "h-1 cursor-row-resize"}
-        bg-transparent hover:bg-primary/30 active:bg-primary/50 transition-colors
-      `}
-    >
-      <div
-        className={`
-          ${direction === "horizontal" ? "w-0.5 h-8 rounded-full" : "h-0.5 w-8 rounded-full"}
-          bg-border/50 group-hover:bg-primary/50 group-active:bg-primary transition-colors
-        `}
-      />
-    </PanelResizeHandle>
-  )
-}
-
 export default function IDELayout() {
   const { isConsoleCollapsed } = useExecutionStore()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(280)
+  const [isResizing, setIsResizing] = useState(false)
+  const resizingRef = useRef(false)
+  const startXRef = useRef(0)
+  const startWidthRef = useRef(280)
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    resizingRef.current = true
+    startXRef.current = e.clientX
+    startWidthRef.current = sidebarWidth
+    setIsResizing(true)
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [sidebarWidth])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizingRef.current) return
+      const delta = e.clientX - startXRef.current
+      const newWidth = Math.max(200, Math.min(600, startWidthRef.current + delta))
+      setSidebarWidth(newWidth)
+    }
+
+    const handleMouseUp = () => {
+      resizingRef.current = false
+      setIsResizing(false)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
 
   return (
     <div className="h-full w-full flex bg-background overflow-hidden relative">
@@ -54,32 +72,42 @@ export default function IDELayout() {
       <div
         className={`
           fixed md:relative inset-y-0 left-0 z-50 md:z-auto
-          w-64 md:w-auto transition-transform duration-200 ease-out
+          transition-transform duration-200 ease-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        <Sidebar />
+        <Sidebar width={sidebarWidth} />
+      </div>
+
+      {/* Resize Handle */}
+      <div
+        className={`
+          hidden md:flex w-1 cursor-col-resize bg-transparent hover:bg-primary/30 active:bg-primary/50
+          transition-colors relative group shrink-0
+          ${isResizing ? 'bg-primary/50' : ''}
+        `}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-transparent group-hover:bg-primary/50 group-active:bg-primary transition-colors" />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 h-full flex flex-col overflow-hidden">
-        <PanelGroup direction="vertical">
-          <Panel defaultSize={65} minSize={40} className="flex flex-col min-h-0">
-            <TabBar />
-            <div className="flex-1 min-h-0 bg-background">
-              <CodeEditor />
-            </div>
-          </Panel>
+      <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
+        <div className="flex flex-col min-h-0 flex-1">
+          <TabBar />
+          <div className="flex-1 min-h-0 bg-background">
+            <CodeEditor />
+          </div>
+        </div>
 
-          {!isConsoleCollapsed && (
-            <>
-              <ResizeHandle direction="vertical" />
-              <Panel defaultSize={35} minSize={20} className="bg-card border-t border-border/30">
-                <ExecutionConsole />
-              </Panel>
-            </>
-          )}
-        </PanelGroup>
+        {!isConsoleCollapsed && (
+          <>
+            <div className="h-1 cursor-row-resize bg-transparent hover:bg-primary/30 active:bg-primary/50 transition-colors shrink-0" />
+            <div className="bg-card border-t border-border/30 shrink-0 h-[35%] min-h-25">
+              <ExecutionConsole />
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

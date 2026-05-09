@@ -4,56 +4,74 @@ import ZunexisLogo from "@/components/shared/ZunexisLogo"
 import ThemeToggle from "@/components/shared/ThemeToggle"
 import Link from "next/link"
 import { IconBrandGithub } from "@tabler/icons-react"
-import { Search, Command } from "lucide-react"
+import { Search, Play, Loader2, Command } from "lucide-react"
 import { useCommandPalette } from "@/components/providers/command-palette-provider"
+import { useExecutionStore } from "@/stores/useExecutionStore"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function ZunexisHeader() {
   const { open } = useCommandPalette()
+  const { executeCode, activeFileId, statuses } = useExecutionStore()
+  const isRunning = activeFileId ? statuses[activeFileId] === "running" : false
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-all">
-      <div className="container mx-auto flex h-14 max-w-screen-2xl items-center justify-between px-4">
-        
-        {/* Left Section: Logo */}
-        <div className="flex items-center gap-4">
-          <Link href="/" className="transition-opacity hover:opacity-90">
-            <ZunexisLogo />
-          </Link>
-        </div>
+    <header className="sticky top-0 z-[100] w-full h-11 flex items-center justify-between px-4 glass-header select-none">
+      {/* Branding */}
+      <div className="shrink-0">
+        <Link href="/" className="hover:opacity-80 transition-opacity">
+          <ZunexisLogo className="h-4 w-auto dark:invert-0 invert opacity-90" />
+        </Link>
+      </div>
 
-        {/* Center/Right Section: Navigation & Actions */}
-        <div className="flex flex-1 items-center justify-end gap-3 md:justify-end">
-          
-          {/* Enhanced Search Button */}
-          <button
-            onClick={open}
-            className="group relative flex h-9 w-full items-center justify-between gap-2 rounded-full border border-border/50 bg-muted/50 px-3 text-sm text-muted-foreground transition-all hover:bg-muted hover:ring-1 hover:ring-border sm:w-64"
-          >
-            <div className="flex items-center gap-2">
-              <Search size={15} className="group-hover:text-foreground transition-colors" />
-              <span className="inline-block">Search project...</span>
-            </div>
-            
-            {/* KBD Shortcut - The "Premium" touch */}
-            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-background px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-              <span className="text-xs">⌘</span>K
-            </kbd>
-          </button>
-
-          <div className="flex items-center gap-1">
-            <div className="h-4 w-[1px] bg-border/60 mx-1 hidden sm:block" /> {/* Separator */}
-            
-            <ThemeToggle />
-
-            <Link
-              href="https://github.com/iamsuryakant/zunexis"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            >
-              <IconBrandGithub size={19} stroke={1.5} />
-            </Link>
+      {/* Global Search */}
+      <div className="flex-1 max-w-lg px-6">
+        <button
+          onClick={open}
+          className="group flex h-8 w-full items-center justify-between gap-3 rounded-full bg-muted/30 hover:bg-muted/50 transition-all px-4 text-muted-foreground/40 border border-transparent hover:border-border/50"
+        >
+          <div className="flex items-center gap-2.5">
+            <Search size={13} className="group-hover:text-primary transition-colors" />
+            <span className="text-[12px] font-medium tracking-tight">Search workspace...</span>
           </div>
+          <div className="hidden sm:flex items-center gap-1 opacity-20">
+            <Command size={10} />
+            <span className="text-[9px] font-bold">K</span>
+          </div>
+        </button>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-3">
+        <Button
+          onClick={executeCode}
+          disabled={!activeFileId || isRunning}
+          className={cn(
+            "h-7 rounded-full px-5 transition-all duration-200 font-bold text-[10px] tracking-[0.05em] uppercase shadow-none",
+            isRunning
+              ? "bg-primary/10 text-primary border border-primary/20"
+              : "bg-primary hover:brightness-110 text-primary-foreground border-none active:scale-95 shadow-[0_0_15px_rgba(74,222,128,0.1)]"
+          )}
+        >
+          {isRunning ? (
+            <Loader2 size={12} className="animate-spin" />
+          ) : (
+            <Play size={10} fill="currentColor" className="mr-2" />
+          )}
+          <span>{isRunning ? "Running" : "Execute"}</span>
+        </Button>
+
+        <div className="h-3 w-px bg-border mx-1" />
+
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <Link
+            href="https://github.com/iamsuryakant/zunexis"
+            target="_blank"
+            className="p-1.5 rounded-md text-muted-foreground/30 hover:text-foreground transition-all"
+          >
+            <IconBrandGithub size={18} stroke={1.5} />
+          </Link>
         </div>
       </div>
     </header>

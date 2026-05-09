@@ -1,21 +1,23 @@
 "use client"
 
 import { useExecutionStore } from "@/stores/useExecutionStore"
-import { 
-  Loader2, 
-  CheckCircle2, 
-  XCircle, 
-  Terminal, 
-  Trash2, 
-  Cpu, 
-  Hash 
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Terminal,
+  Trash2,
+  Cpu,
+  Hash,
+  Minimize2,
+  Maximize2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function ExecutionConsole() {
-  const { activeFileId, outputs, statuses, clearOutput } = useExecutionStore()
+  const { activeFileId, outputs, statuses, clearOutput, isConsoleCollapsed, toggleConsole } = useExecutionStore()
 
   const outputLogs = activeFileId ? (outputs[activeFileId] || []) : []
   const status = activeFileId ? (statuses[activeFileId] || "idle") : "idle"
@@ -32,31 +34,41 @@ export default function ExecutionConsole() {
   return (
     <div className="flex flex-col h-full bg-background/50 font-mono selection:bg-primary/30">
       {/* Terminal Header - Refined for "Output" focus */}
-      <div className="h-9 flex items-center justify-between px-4 border-b border-white/[0.03] bg-background/60 backdrop-blur-md">
+      <div className="h-9 flex items-center justify-between px-4 border-b border-white/3 bg-background/60 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <current.icon 
-              size={12} 
-              className={cn(current.color, status === "running" && "animate-spin")} 
+            <current.icon
+              size={12}
+              className={cn(current.color, status === "running" && "animate-spin")}
             />
             <span className={cn("text-[10px] font-bold uppercase tracking-[0.15em]", current.color)}>
               {current.label}
             </span>
           </div>
-          <div className="h-3 w-[1px] bg-white/10" />
+          <div className="h-3 w-px bg-white/10" />
           <span className="text-[10px] text-muted-foreground/30 font-medium uppercase tracking-widest">
             Read-Only Output
           </span>
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => activeFileId && clearOutput(activeFileId)}
-          className="h-6 w-6 text-muted-foreground/20 hover:text-foreground transition-colors rounded-md"
-        >
-          <Trash2 size={13} />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleConsole}
+            className="h-6 w-6 text-muted-foreground/30 hover:text-foreground transition-colors rounded-md"
+          >
+            {isConsoleCollapsed ? <Maximize2 size={13} /> : <Minimize2 size={13} />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => activeFileId && clearOutput(activeFileId)}
+            className="h-6 w-6 text-muted-foreground/30 hover:text-foreground transition-colors rounded-md"
+          >
+            <Trash2 size={13} />
+          </Button>
+        </div>
       </div>
 
       {/* Output Stream */}
@@ -105,7 +117,7 @@ export default function ExecutionConsole() {
       </div>
 
       {/* Metadata Footer */}
-      <div className="h-6 px-4 flex items-center justify-between border-t border-white/[0.02] bg-black/10">
+      <div className="h-6 px-4 flex items-center justify-between border-t border-white/2 bg-black/10">
         <div className="flex items-center gap-4 text-[9px] font-bold text-muted-foreground/20 uppercase tracking-tighter">
           <span>Logs: {outputLogs.length}</span>
           <span>Buffer: Raw Text</span>

@@ -1,9 +1,8 @@
 "use client"
 
 import { useExecutionStore } from "@/stores/useExecutionStore"
-import { X, Loader2, Terminal, FileCode, ChevronLeft, ChevronRight } from "lucide-react"
+import { X, Loader2, FileCode, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { useRef, useState, useEffect } from "react"
 import { AnimatePresence } from "framer-motion"
 
@@ -15,8 +14,6 @@ export default function TabBar() {
     setActiveFile,
     closeTab,
     statuses,
-    isConsoleCollapsed,
-    toggleConsole
   } = useExecutionStore()
 
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -139,21 +136,6 @@ export default function TabBar() {
           </button>
         )}
       </AnimatePresence>
-
-      {/* 3. Utility Sidebar */}
-      <div className="flex items-center px-2 h-full gap-1 border-l border-border/40 bg-background">
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-7 w-7 rounded-sm",
-            !isConsoleCollapsed ? "text-primary bg-primary/10" : "text-muted-foreground"
-          )}
-          onClick={toggleConsole}
-        >
-          <Terminal size={14} />
-        </Button>
-      </div>
     </div>
   )
 }

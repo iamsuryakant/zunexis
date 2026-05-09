@@ -125,7 +125,7 @@ export const useExecutionStore = create<StoreType>()(
         fontSize: 14,
         fontFamily: "JetBrains Mono",
         lineHeight: 1.6,
-        editorTheme: "github-dark",
+        editorTheme: "",
       },
 
       // File System
@@ -256,6 +256,11 @@ export const useExecutionStore = create<StoreType>()(
         const state = get();
         if (!state.activeFileId) return;
 
+        // Auto-open console if collapsed
+        if (state.isConsoleCollapsed) {
+          set({ isConsoleCollapsed: false });
+        }
+
         const activeFile = state.files.find((f) => f.id === state.activeFileId);
         if (!activeFile || activeFile.type !== "file") return;
 
@@ -302,6 +307,12 @@ export const useExecutionStore = create<StoreType>()(
         openFileIds: state.openFileIds,
         activeFileId: state.activeFileId,
         defaultLanguage: state.defaultLanguage,
+        settings: {
+          fontSize: state.settings.fontSize,
+          fontFamily: state.settings.fontFamily,
+          lineHeight: state.settings.lineHeight,
+          editorTheme: state.settings.editorTheme,
+        },
       }),
     },
   ),

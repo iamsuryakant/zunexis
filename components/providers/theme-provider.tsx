@@ -11,7 +11,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       attribute="class"
       defaultTheme="light"
       enableSystem={false}
-      enableColorScheme={false}
       disableTransitionOnChange
     >
       <TooltipProvider delayDuration={300}>

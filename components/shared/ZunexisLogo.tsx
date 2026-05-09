@@ -1,6 +1,6 @@
-export default function ZunexisLogo() {
+export default function ZunexisLogo({ className = "" }: { className?: string }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className={`flex items-center gap-3 ${className}`}>
       <svg
         width="32"
         height="32"
