@@ -1,181 +1,115 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { useExecutionStore } from "@/store/useExecutionStore"
-import { Button } from "@/components/ui/button"
-import {
-  PanelBottom,
-  PanelLeft,
-  PanelRight,
-  Trash2,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  Timer,
-  Cpu,
-  Minimize2,
+import { useExecutionStore } from "@/stores/useExecutionStore"
+import { 
+  Loader2, 
+  CheckCircle2, 
+  XCircle, 
+  Terminal, 
+  Trash2, 
+  Cpu, 
+  Hash 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function ExecutionConsole() {
-  const {
-    tabs,
-    activeTabId,
-    layout,
-    setLayout,
-    clearOutput,
-    toggleConsole
-  } = useExecutionStore()
+  const { activeFileId, outputs, statuses, clearOutput } = useExecutionStore()
 
-  const activeTab = tabs.find((t) => t.id === activeTabId)
-  const consoleRef = useRef<HTMLDivElement>(null)
+  const outputLogs = activeFileId ? (outputs[activeFileId] || []) : []
+  const status = activeFileId ? (statuses[activeFileId] || "idle") : "idle"
 
-  useEffect(() => {
-    if (consoleRef.current) {
-      consoleRef.current.scrollTop =
-        consoleRef.current.scrollHeight
-    }
-  }, [activeTab?.output])
-
-  if (!activeTab) return null
-
-  const { status, meta } = activeTab
-
-  const renderStatusIcon = () => {
-    if (status === "running")
-      return (
-        <Loader2 className="h-3 w-3 animate-spin text-primary" />
-      )
-
-    if (status === "success")
-      return (
-        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-      )
-
-    if (status === "error")
-      return (
-        <AlertCircle className="h-3 w-3 text-red-500" />
-      )
-
-    return null
+  const statusConfig = {
+    idle: { label: "Standby", icon: Cpu, color: "text-muted-foreground/40" },
+    running: { icon: Loader2, label: "Executing", color: "text-blue-400" },
+    success: { icon: CheckCircle2, label: "Success", color: "text-emerald-400" },
+    error: { icon: XCircle, label: "Failed", color: "text-rose-400" },
   }
 
+  const current = statusConfig[status as keyof typeof statusConfig] || statusConfig.idle
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="h-11 px-4 flex items-center justify-between border-b bg-muted/30">
-        <div className="flex items-center gap-3 text-xs">
-
-          <span className="font-medium text-muted-foreground">
-            Console
-          </span>
-
-          <div className="flex items-center gap-1">
-            {renderStatusIcon()}
-
-            <span
-              className={cn(
-                "capitalize font-medium",
-                status === "running" && "text-primary",
-                status === "success" && "text-emerald-500",
-                status === "error" && "text-red-500"
-              )}
-            >
-              {status}
+    <div className="flex flex-col h-full bg-background/50 font-mono selection:bg-primary/30">
+      {/* Terminal Header - Refined for "Output" focus */}
+      <div className="h-9 flex items-center justify-between px-4 border-b border-white/[0.03] bg-background/60 backdrop-blur-md">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <current.icon 
+              size={12} 
+              className={cn(current.color, status === "running" && "animate-spin")} 
+            />
+            <span className={cn("text-[10px] font-bold uppercase tracking-[0.15em]", current.color)}>
+              {current.label}
             </span>
           </div>
-
-          {meta?.time && (
-            <div className="flex items-center gap-2 text-muted-foreground text-xs">
-              <div className="flex items-center gap-1">
-              <Timer className="h-3 w-3" />
-              <span>{meta.time}s</span>
-              </div>
-              {meta?.memory && (
-              <div className="flex items-center gap-1">
-                <Cpu className="h-3 w-3" />
-                <span>{meta.memory} KB</span>
-              </div>
-              )}
-            </div>
-          )}
+          <div className="h-3 w-[1px] bg-white/10" />
+          <span className="text-[10px] text-muted-foreground/30 font-medium uppercase tracking-widest">
+            Read-Only Output
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-1">
-
-            <Button
-              size="icon"
-              variant={layout === "bottom" ? "secondary" : "ghost"}
-              onClick={() => setLayout("bottom")}
-              className="h-7 w-7"
-            >
-              <PanelBottom className="h-4 w-4" />
-            </Button>
-
-            <Button
-              size="icon"
-              variant={layout === "right" ? "secondary" : "ghost"}
-              onClick={() => setLayout("right")}
-              className="h-7 w-7"
-            >
-              <PanelRight className="h-4 w-4" />
-            </Button>
-
-            <Button
-              size="icon"
-              variant={layout === "left" ? "secondary" : "ghost"}
-              onClick={() => setLayout("left")}
-              className="h-7 w-7"
-            >
-              <PanelLeft className="h-4 w-4" />
-            </Button>
-
-          </div>
-
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => clearOutput(activeTab.id)}
-            className="h-7 w-7"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={toggleConsole}
-            className="h-7 w-7"
-          >
-            <Minimize2 className="h-4 w-4" />
-          </Button>
-
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => activeFileId && clearOutput(activeFileId)}
+          className="h-6 w-6 text-muted-foreground/20 hover:text-foreground transition-colors rounded-md"
+        >
+          <Trash2 size={13} />
+        </Button>
       </div>
 
-      <div
-        ref={consoleRef}
-        className="flex-1 overflow-y-auto px-4 py-3 font-mono text-sm bg-background"
-      >
-        {activeTab.output.length === 0 ? (
-          <span className="text-muted-foreground">
-            No output yet.
-          </span>
-        ) : (
-          activeTab.output.map((line, i) => (
-            <div
-              key={i}
-              className={cn(
-                "leading-relaxed",
-                status === "error"
-                  ? "text-red-500"
-                  : "text-foreground"
-              )}
-            >
-              {line}
+      {/* Output Stream */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-1">
+        <AnimatePresence mode="popLayout">
+          {outputLogs.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center opacity-10">
+              <Terminal size={32} strokeWidth={1} />
+              <span className="text-[10px] mt-2 uppercase tracking-widest font-bold">No Output Generated</span>
             </div>
-          ))
-        )}
+          ) : (
+            <>
+              {outputLogs.map((log, i) => (
+                <motion.div
+                  key={`${activeFileId}-${i}`}
+                  initial={{ opacity: 0, y: 2 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-start gap-3 text-[12px] group"
+                >
+                  <span className="text-muted-foreground/10 text-[10px] w-4 text-right tabular-nums select-none mt-0.5">
+                    {i + 1}
+                  </span>
+                  <div className={cn(
+                    "flex-1 break-all whitespace-pre-wrap leading-relaxed",
+                    status === "error" && i === outputLogs.length - 1 ? "text-rose-400" : "text-foreground/80"
+                  )}>
+                    {log}
+                  </div>
+                </motion.div>
+              ))}
+              
+              {/* Process Finished Indicator */}
+              {status !== "running" && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="pt-4 flex items-center gap-2 text-[10px] text-muted-foreground/20 italic select-none"
+                >
+                  <Hash size={10} />
+                  <span>Process exited with status: {status}</span>
+                </motion.div>
+              )}
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Metadata Footer */}
+      <div className="h-6 px-4 flex items-center justify-between border-t border-white/[0.02] bg-black/10">
+        <div className="flex items-center gap-4 text-[9px] font-bold text-muted-foreground/20 uppercase tracking-tighter">
+          <span>Logs: {outputLogs.length}</span>
+          <span>Buffer: Raw Text</span>
+        </div>
       </div>
     </div>
   )

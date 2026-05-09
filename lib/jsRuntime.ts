@@ -1,73 +1,46 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-let worker: Worker | null = null
+let workerInstance: Worker | null = null;
 
 export function runJSWorker(
   code: string,
+  input: string,
   tabId: string,
-  set: any
+  onUpdate: (payload: any) => void
 ) {
-  if (worker) {
-    worker.terminate()
-    worker = null
+  if (workerInstance) {
+    workerInstance.terminate();
   }
 
-  worker = new Worker(
-    new URL("../public/codeWorker.ts", import.meta.url),
-    { type: "module" }
-  )
+  // Ensure the path to your worker is correct
+  workerInstance = new Worker(new URL("../public/codeWorker.ts", import.meta.url), {
+    type: "module",
+  });
 
-  set((state: any) => ({
-    tabs: state.tabs.map((t: any) =>
-      t.id === tabId
-        ? { ...t, status: "running", output: [] }
-        : t
-    ),
-  }))
+  workerInstance.onmessage = (event) => {
+    const { type, logs } = event.data;
 
-  worker.onmessage = (event) => {
-    const { type, logs, tabId: incomingTabId } =
-      event.data
-
-    if (incomingTabId !== tabId) return
-
-    if (type === "log") {
-      set((state: any) => ({
-        tabs: state.tabs.map((t: any) =>
-          t.id === tabId
-            ? { ...t, output: [...t.output, ...logs] }
-            : t
-        ),
-      }))
+    // Handle different message types from your worker
+    switch (type) {
+      case "running":
+        onUpdate({ type: "status", status: "running" });
+        break;
+      case "log":
+        onUpdate({ type: "log", logs });
+        break;
+      case "error":
+      case "timeout":
+        onUpdate({ type: "error", logs: logs || ["An unknown error occurred"] });
+        break;
+      case "done":
+        onUpdate({ type: "done" });
+        break;
     }
+  };
 
-    if (type === "done") {
-      set((state: any) => ({
-        tabs: state.tabs.map((t: any) =>
-          t.id === tabId
-            ? { ...t, status: "success" }
-            : t
-        ),
-      }))
-      worker?.terminate()
-      worker = null
-    }
+  workerInstance.onerror = (err) => {
+    onUpdate({ type: "error", logs: ["Worker Error: Check console for details."] });
+    console.error("Worker Crash:", err);
+  };
 
-    if (type === "error" || type === "timeout") {
-      set((state: any) => ({
-        tabs: state.tabs.map((t: any) =>
-          t.id === tabId
-            ? {
-                ...t,
-                status: "error",
-                output: [...t.output, ...logs],
-              }
-            : t
-        ),
-      }))
-      worker?.terminate()
-      worker = null
-    }
-  }
-
-  worker.postMessage({ code, tabId })
+  workerInstance.postMessage({ code, input, tabId });
 }

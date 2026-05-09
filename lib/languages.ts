@@ -1,59 +1,13 @@
 export const LANGUAGES = [
-  {
-    key: "bash",
-    label: "Bash",
-    id: 46,
-    boilerplate: `echo "Hello World"`,
-    monaco: "shell",
-  },
-  {
-    key: "python",
-    label: "Python 3.12",
-    id: 100,
-    boilerplate: `print("Hello World")`,
-    monaco: "python",
-  },
-  {
-    key: "javascript",
-    label: "Node.js 22",
-    id: 102,
-    boilerplate: `console.log("Hello World");`,
-    monaco: "javascript",
-  },
-  {
-    key: "java",
-    label: "Java 17",
-    id: 91,
-    boilerplate: `public class Main {
-  public static void main(String[] args) {
-    System.out.println("Hello World");
-  }
-}`,
-    monaco: "java",
-  },
-  {
-    key: "cpp",
-    label: "C++ (GCC 14)",
-    id: 105,
-    boilerplate: `#include <iostream>
-using namespace std;
-
-int main() {
-  cout << "Hello World";
-  return 0;
-}`,
-    monaco: "cpp",
-  },
-  {
-    key: "c",
-    label: "C (GCC 14)",
-    id: 103,
-    boilerplate: `#include <stdio.h>
-
-int main() {
-  printf("Hello World");
-  return 0;
-}`,
-    monaco: "c",
-  },
+  { key: "javascript", label: "JavaScript", boilerplate: 'console.log("Hello Zunexis!");', judgeId: 63 },
+  { key: "typescript", label: "TypeScript", boilerplate: 'console.log("Hello Zunexis!");', judgeId: 83 },
+  { key: "python", label: "Python", boilerplate: 'print("Hello Zunexis!")', judgeId: 71 },
+  { key: "java", label: "Java", boilerplate: 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello Zunexis!");\n  }\n}', judgeId: 62 },
+  { key: "cpp", label: "C++", boilerplate: '#include <iostream>\n\nint main() {\n    std::cout << "Hello Zunexis!" << std::endl;\n    return 0;\n}', judgeId: 54 },
+  { key: "c", label: "C", boilerplate: '#include <stdio.h>\n\nint main() {\n    printf("Hello Zunexis!\\n");\n    return 0;\n}', judgeId: 50 },
+  { key: "go", label: "Go", boilerplate: 'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello Zunexis!")\n}', judgeId: 60 },
+  { key: "rust", label: "Rust", boilerplate: 'fn main() {\n    println!("Hello Zunexis!");\n}', judgeId: 73 },
+  { key: "ruby", label: "Ruby", boilerplate: 'puts "Hello Zunexis!"', judgeId: 72 },
 ];
+
+export const getLanguageByKey = (key: string) => LANGUAGES.find(l => l.key === key);

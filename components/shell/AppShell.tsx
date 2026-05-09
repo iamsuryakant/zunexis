@@ -2,22 +2,22 @@
 
 import { ReactNode } from "react"
 import ZunexisHeader from "./ZunexisHeader"
-import ZunexisFooter from "./ZunexisFooter"
+import StatusBar from "@/components/StatusBar"
+import { CommandPalette } from "@/components/navigation/CommandPalette"
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <div className="sticky top-0 z-50 backdrop-blur-md bg-background/70 border-b border-border">
-        <ZunexisHeader />
-      </div>
+    <div className="flex flex-col h-screen w-screen bg-background overflow-hidden">
+      <ZunexisHeader />
 
-      <main className="flex-1 overflow-hidden px-3 py-3">
-        <div className="h-full rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+      <main className="flex-1 overflow-hidden relative">
+        <div className="absolute inset-3 rounded-2xl border border-border/50 bg-card shadow-2xl shadow-black/10 overflow-hidden">
           {children}
         </div>
       </main>
 
-      <ZunexisFooter />
+      <StatusBar />
+      <CommandPalette />
     </div>
   )
 }

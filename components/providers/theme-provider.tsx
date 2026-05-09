@@ -2,20 +2,21 @@
 
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { CommandPaletteProvider } from "./command-palette-provider"
 
-export function ThemeProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="system"
-      enableSystem
+      defaultTheme="light"
+      enableSystem={false}
+      enableColorScheme={false}
       disableTransitionOnChange
     >
-      {children}
+      <TooltipProvider delayDuration={300}>
+        <CommandPaletteProvider>{children}</CommandPaletteProvider>
+      </TooltipProvider>
     </NextThemesProvider>
   )
 }

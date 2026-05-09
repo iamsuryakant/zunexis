@@ -1,12 +1,13 @@
-import AppShell from "@/components/shell/AppShell"
-import IDEClient from "@/components/layout/IDEClient"
+"use client"
 
-export default function Home() {
+import IDEClient from "@/components/layout/IDEClient"
+import AppShell from "@/components/shell/AppShell"
+
+export default function Page() {
   return (
     <AppShell>
-      <div className="h-full">
-        <IDEClient />
-      </div>
+      {/* This renders your IDELayout inside the rounded card */}
+      <IDEClient />
     </AppShell>
   )
 }

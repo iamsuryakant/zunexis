@@ -1,150 +1,159 @@
-"use client";
+"use client"
 
-import { useEffect, useRef } from "react";
-import { useExecutionStore } from "@/store/useExecutionStore";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Play, Loader2, X, Terminal } from "lucide-react";
-
-const languages = [
-  { label: "JavaScript", value: "javascript" },
-  { label: "Python", value: "python" },
-  { label: "C++", value: "cpp" },
-  { label: "Java", value: "java" },
-  { label: "C", value: "c" },
-  { label: "Bash", value: "bash" },
-];
+import { useExecutionStore } from "@/stores/useExecutionStore"
+import { X, Loader2, Terminal, FileCode, ChevronLeft, ChevronRight } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { useRef, useState, useEffect } from "react"
+import { AnimatePresence } from "framer-motion"
 
 export default function TabBar() {
   const {
-    tabs,
-    activeTabId,
-    setActiveTab,
-    addTab,
+    files,
+    openFileIds,
+    activeFileId,
+    setActiveFile,
     closeTab,
-    executeCode,
-    switchLanguage,
-    toggleConsole,
-  } = useExecutionStore();
+    statuses,
+    isConsoleCollapsed,
+    toggleConsole
+  } = useExecutionStore()
 
-  const activeTab = tabs.find((t) => t.id === activeTabId);
-  const isRunning = activeTab?.status === "running";
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const openTabs = openFileIds
+    .map(id => files.find(f => f.id === id))
+    .filter(Boolean)
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1)
+    }
+  }
 
   useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
+    checkScroll()
+    window.addEventListener('resize', checkScroll)
+    return () => window.removeEventListener('resize', checkScroll)
+  }, [openTabs])
 
-    const activeEl = container.querySelector(
-      `[data-tab-id="${activeTabId}"]`,
-    ) as HTMLElement | null;
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const amount = 240
+      scrollRef.current.scrollBy({ 
+        left: direction === 'left' ? -amount : amount, 
+        behavior: 'smooth' 
+      })
+    }
+  }
 
-    activeEl?.scrollIntoView({
-      behavior: "smooth",
-      inline: "center",
-      block: "nearest",
-    });
-  }, [activeTabId]);
-
-  if (!activeTab) return null;
+  if (openTabs.length === 0) return null
 
   return (
-    <div className="h-14 shrink-0 border-b bg-background flex items-center px-4">
-      <div
-        ref={scrollRef}
-        className="flex-1 flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide"
-      >
-        {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            data-tab-id={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-3 h-8 rounded-md text-xs cursor-pointer transition shrink-0
-              ${
-                tab.id === activeTabId
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:bg-muted/60"
-              }`}
+    <div className="h-9 flex items-center bg-background border-b border-border/40 select-none">
+      
+      {/* 1. Integrated Scroll Controls (Only show when overflow exists) */}
+      <AnimatePresence>
+        {canScrollLeft && (
+          <button 
+            onClick={() => scroll('left')}
+            className="flex items-center justify-center w-6 h-full border-r border-border/40 hover:bg-accent text-muted-foreground z-20 bg-background"
           >
-            {tab.status === "running" && (
-              <Loader2 className="h-3 w-3 animate-spin text-primary" />
-            )}
-            <span className="truncate max-w-30">{tab.name}</span>
+            <ChevronLeft size={14} />
+          </button>
+        )}
+      </AnimatePresence>
 
-            <X
-              className="h-3 w-3 opacity-40 hover:opacity-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeTab(tab.id);
-              }}
-            />
-          </div>
-        ))}
+      {/* 2. Flush Tabs Area */}
+      <div 
+        ref={scrollRef}
+        onScroll={checkScroll}
+        className="flex-1 flex items-center h-full overflow-x-auto no-scrollbar scroll-smooth"
+      >
+        {openTabs.map((tab) => {
+          const isTabActive = tab!.id === activeFileId
+          const isRunning = statuses[tab!.id] === "running"
 
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={addTab}
-          className="h-8 text-xs shrink-0"
-        >
-          +
-        </Button>
+          return (
+            <div
+              key={tab!.id}
+              onClick={() => setActiveFile(tab!.id)}
+              className={cn(
+                "group relative flex items-center gap-2 px-3 h-full cursor-pointer border-r border-border/40 min-w-[120px] max-w-[200px] transition-colors",
+                isTabActive 
+                  ? "bg-background text-foreground" 
+                  : "bg-muted/20 text-muted-foreground/60 hover:bg-muted/40 hover:text-muted-foreground"
+              )}
+            >
+              {/* Active Top Accent Line */}
+              {isTabActive && (
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary" />
+              )}
+
+              <FileCode 
+                size={13} 
+                className={cn(
+                  "shrink-0",
+                  isTabActive ? "text-primary" : "text-muted-foreground/40"
+                )} 
+              />
+
+              <span className="truncate text-[11px] font-medium">
+                {tab!.name}
+              </span>
+
+              <div className="ml-auto flex items-center justify-center w-4 h-4">
+                {isRunning ? (
+                  <Loader2 size={11} className="animate-spin text-emerald-500" />
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      closeTab(tab!.id)
+                    }}
+                    className={cn(
+                      "p-0.5 rounded-sm hover:bg-accent hover:text-foreground transition-opacity",
+                      isTabActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    )}
+                  >
+                    <X size={11} />
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
 
-      <div className="flex items-center gap-3 shrink-0 ml-4">
-        <Select
-          value={activeTab.language}
-          onValueChange={(val) =>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            switchLanguage(activeTab.id, val as any)
-          }
-        >
-          <SelectTrigger className="w-32.5 h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {languages.map((lang) => (
-              <SelectItem key={lang.value} value={lang.value}>
-                {lang.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <AnimatePresence>
+        {canScrollRight && (
+          <button 
+            onClick={() => scroll('right')}
+            className="flex items-center justify-center w-6 h-full border-l border-border/40 hover:bg-accent text-muted-foreground z-20 bg-background"
+          >
+            <ChevronRight size={14} />
+          </button>
+        )}
+      </AnimatePresence>
 
+      {/* 3. Utility Sidebar */}
+      <div className="flex items-center px-2 h-full gap-1 border-l border-border/40 bg-background">
         <Button
-          size="sm"
-          disabled={isRunning}
-          onClick={executeCode}
-          className="h-8 text-xs min-w-23.75"
-        >
-          {isRunning ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              Running
-            </>
-          ) : (
-            <>
-              <Play className="h-4 w-4 mr-1" />
-              Run
-            </>
-          )}
-        </Button>
-        <Button
-          size="icon"
           variant="ghost"
+          size="icon"
+          className={cn(
+            "h-7 w-7 rounded-sm",
+            !isConsoleCollapsed ? "text-primary bg-primary/10" : "text-muted-foreground"
+          )}
           onClick={toggleConsole}
-          className="h-8 w-8"
         >
-          <Terminal className="h-4 w-4" />
+          <Terminal size={14} />
         </Button>
       </div>
     </div>
-  );
+  )
 }
