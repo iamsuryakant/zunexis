@@ -9,6 +9,18 @@ export interface ExecutionMeta {
   memory: number;
 }
 
+export interface RunHistoryEntry {
+  id: string;
+  fileId: string;
+  fileName: string;
+  language: string;
+  status: "success" | "error";
+  outputPreview: string;
+  time: number;
+  memory: number;
+  createdAt: number;
+}
+
 export interface Settings {
   fontSize: number;
   fontFamily: string;
@@ -23,6 +35,8 @@ export interface StoreType {
   setSidebarView: (view: string) => void;
   isConsoleCollapsed: boolean;
   toggleConsole: () => void;
+  isConsoleExpanded: boolean;
+  toggleConsoleExpanded: () => void;
 
   // Default Language
   defaultLanguage: string;
@@ -51,6 +65,7 @@ export interface StoreType {
   outputs: Record<string, string[]>;
   metas: Record<string, ExecutionMeta>;
   statuses: Record<string, "idle" | "running" | "success" | "error">;
+  runHistory: RunHistoryEntry[];
 
   // File Actions
   setActiveFile: (id: string) => void;
@@ -75,6 +90,8 @@ export interface StoreType {
     status: "idle" | "running" | "success" | "error",
   ) => void;
   setMeta: (id: string, meta: ExecutionMeta) => void;
+  addRunHistory: (entry: Omit<RunHistoryEntry, "id" | "createdAt">) => void;
+  clearRunHistory: () => void;
 }
 
 const getDefaultCode = (lang: string): string => {
@@ -113,6 +130,9 @@ export const useExecutionStore = create<StoreType>()(
       isConsoleCollapsed: false,
       toggleConsole: () =>
         set((s) => ({ isConsoleCollapsed: !s.isConsoleCollapsed })),
+      isConsoleExpanded: false,
+      toggleConsoleExpanded: () =>
+        set((s) => ({ isConsoleExpanded: !s.isConsoleExpanded })),
 
       // Default Language
       defaultLanguage: "javascript",
@@ -152,6 +172,7 @@ export const useExecutionStore = create<StoreType>()(
       outputs: {},
       metas: {},
       statuses: {},
+      runHistory: [],
 
       // File Actions
       setActiveFile: (id: string) => set({ activeFileId: id }),
@@ -299,6 +320,20 @@ export const useExecutionStore = create<StoreType>()(
 
       setMeta: (id: string, meta: ExecutionMeta) =>
         set((s) => ({ metas: { ...s.metas, [id]: meta } })),
+
+      addRunHistory: (entry) =>
+        set((s) => ({
+          runHistory: [
+            {
+              ...entry,
+              id: `${entry.fileId}-${Date.now()}`,
+              createdAt: Date.now(),
+            },
+            ...s.runHistory,
+          ].slice(0, 20),
+        })),
+
+      clearRunHistory: () => set({ runHistory: [] }),
     }),
     {
       name: "zunexis-storage",

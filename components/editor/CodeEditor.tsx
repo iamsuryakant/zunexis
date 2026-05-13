@@ -5,6 +5,7 @@ import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { useExecutionStore } from "@/stores/useExecutionStore";
 import { FileCode, Layers } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const THEMES: Record<string, object> = {
   "vs-dark": {
@@ -122,10 +123,19 @@ const THEMES: Record<string, object> = {
   },
 };
 
+const MONO_FONT_STACK =
+  '"JetBrains Mono", "Cascadia Code", "SFMono-Regular", "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace';
+
+const getEditorFontFamily = (fontFamily?: string) => {
+  if (!fontFamily || fontFamily === "JetBrains Mono") return MONO_FONT_STACK;
+  return `${fontFamily}, ${MONO_FONT_STACK}`;
+};
+
 export default function CodeEditor() {
   const { files, activeFileId, updateFileCode, executeCode, settings } = useExecutionStore();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
 
   if (typeof window !== "undefined" && !mounted) {
     setMounted(true);
@@ -148,21 +158,21 @@ export default function CodeEditor() {
   return (
     <div className="h-full w-full bg-background relative flex flex-col overflow-hidden">
       {/* CLEAN EDITOR HEADER: Information Only */}
-      <div className="h-9 shrink-0 flex items-center justify-between px-4 border-b border-border/40 bg-muted/5 select-none">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+      <div className="hidden h-9 shrink-0 items-center justify-between gap-3 border-b border-border/40 bg-muted/5 px-4 select-none sm:flex">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+          <div className="flex min-w-0 items-center gap-2">
             <FileCode size={14} className="text-muted-foreground/40" />
-            <span className="text-[11px] font-bold text-foreground/70 tracking-tight">
+            <span className="truncate text-[11px] font-bold text-foreground/70 tracking-tight">
               {activeFile.name}
             </span>
           </div>
-          <div className="h-3 w-px bg-border/40" />
-          <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest">
+          <div className="hidden h-3 w-px bg-border/40 sm:block" />
+          <span className="hidden text-[10px] font-medium text-muted-foreground/45 uppercase tracking-wide sm:inline">
             {activeFile.language}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 opacity-40 hover:opacity-100 transition-opacity">
+        <div className="hidden items-center gap-3 opacity-40 hover:opacity-100 transition-opacity sm:flex">
           <span className="text-[10px] font-mono">UTF-8</span>
           <Layers size={12} />
         </div>
@@ -188,18 +198,21 @@ export default function CodeEditor() {
           }}
           onChange={(val) => updateFileCode(activeFileId, val || "")}
           options={{
-            fontSize: settings.fontSize || 14,
-            fontFamily: settings.fontFamily || "JetBrains Mono, monospace",
+            fontSize: isMobile ? Math.max(settings.fontSize || 14, 14) : settings.fontSize || 14,
+            fontFamily: getEditorFontFamily(settings.fontFamily),
+            lineHeight: settings.lineHeight ? Math.round((settings.fontSize || 14) * settings.lineHeight) : undefined,
             minimap: { enabled: false },
-            padding: { top: 20 },
+            padding: { top: isMobile ? 12 : 20 },
             scrollBeyondLastLine: false,
             renderLineHighlight: "all",
             scrollbar: { verticalScrollbarSize: 6, horizontalScrollbarSize: 6, useShadows: false },
             lineNumbers: "on",
             glyphMargin: false,
-            folding: true,
-            lineDecorationsWidth: 10,
-            lineNumbersMinChars: 3,
+            folding: !isMobile,
+            lineDecorationsWidth: isMobile ? 14 : 10,
+            lineNumbersMinChars: isMobile ? 2 : 3,
+            wordWrap: isMobile ? "on" : "off",
+            automaticLayout: true,
           }}
           onMount={(editor, monaco) => {
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => executeCode());

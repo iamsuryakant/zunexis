@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils"
 
 interface SidebarProps {
   width?: number;
+  onRequestClose?: () => void;
 }
 
-export default function Sidebar({ width = 256 }: SidebarProps) {
+export default function Sidebar({ width = 256, onRequestClose }: SidebarProps) {
   const { sidebarView, setSidebarView, setCreating } = useExecutionStore()
 
   const viewLabels: Record<string, string> = {
@@ -25,13 +26,14 @@ export default function Sidebar({ width = 256 }: SidebarProps) {
     // Toggle: if clicking on already active view, close it
     if (sidebarView === view) {
       setSidebarView("")
+      onRequestClose?.()
     } else {
       setSidebarView(view)
     }
   }
 
   return (
-    <div className="flex h-full w-full">
+    <div className="flex h-full w-full bg-background shadow-2xl md:bg-transparent md:shadow-none">
       {/* --- Activity Bar (Icon Strip) --- */}
       <nav className="w-12 flex flex-col items-center py-4 gap-4 bg-background border-r border-border/40 z-20">
         <ActivityIcon
@@ -58,12 +60,12 @@ export default function Sidebar({ width = 256 }: SidebarProps) {
       {/* --- Sidebar Panel --- */}
       {sidebarView && (
         <aside
-          className="flex flex-col h-full bg-background/50 backdrop-blur-sm border-r border-border/40 select-none overflow-hidden"
-          style={{ width }}
+          className="flex flex-col h-full bg-background border-r border-border/40 select-none overflow-hidden md:bg-background/50 md:backdrop-blur-sm"
+          style={{ width: `min(${width}px, calc(100vw - 56px))` }}
         >
         {/* Dynamic Header */}
         <div className="flex h-12 items-center justify-between px-4 border-b border-border/10">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/55">
             {viewLabels[sidebarView] || "Panel"}
           </span>
 

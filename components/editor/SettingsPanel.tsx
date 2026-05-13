@@ -46,7 +46,7 @@ export default function SettingsPanel() {
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-muted-foreground/60">
           <Code2 size={14} strokeWidth={2} />
-          <span className="text-[11px] font-semibold uppercase tracking-wider">Default Language</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wide">Default Language</span>
         </div>
         <div className="grid grid-cols-2 gap-1.5">
           {LANGUAGES.map((lang) => (
@@ -69,7 +69,7 @@ export default function SettingsPanel() {
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-muted-foreground/60">
           <Type size={14} strokeWidth={2} />
-          <span className="text-[11px] font-semibold uppercase tracking-wider">Font Size</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wide">Font Size</span>
         </div>
         <div className="grid grid-cols-3 gap-1.5">
           {fontSizes.map((size) => (
@@ -93,7 +93,7 @@ export default function SettingsPanel() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-muted-foreground/60">
             <Sliders size={14} strokeWidth={2} />
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Line Height</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide">Line Height</span>
           </div>
           <span className="text-[10px] font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">
             {settings.lineHeight}
@@ -114,7 +114,7 @@ export default function SettingsPanel() {
       <section className="pt-4 border-t border-border/20">
         <div className="flex items-center gap-2 text-muted-foreground/60 mb-3">
           <PaletteIcon size={14} strokeWidth={2} />
-          <span className="text-[11px] font-semibold uppercase tracking-wider">Editor Theme</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wide">Editor Theme</span>
         </div>
         <div className="grid grid-cols-2 gap-1.5">
           {THEMES.map((themeId) => (

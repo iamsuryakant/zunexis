@@ -10,14 +10,23 @@ import {
   ChevronUp, 
   Globe, 
   Cpu, 
-  Monitor 
+  Monitor,
+  Terminal
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { LANGUAGES } from "@/lib/languages"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function StatusBar() {
-  const { files, activeFileId, statuses, defaultLanguage, setDefaultLanguage } = useExecutionStore()
+  const {
+    files,
+    activeFileId,
+    statuses,
+    defaultLanguage,
+    setDefaultLanguage,
+    isConsoleCollapsed,
+    toggleConsole,
+  } = useExecutionStore()
   const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [showLangMenu, setShowLangMenu] = useState(false)
@@ -57,24 +66,40 @@ export default function StatusBar() {
   if (!mounted) return <footer className="h-6 bg-background border-t border-border/40" />
 
   return (
-    <footer className="h-6 flex items-center justify-between px-2 md:px-3 bg-background border-t border-border/40 select-none font-sans overflow-visible">
+    <footer className="h-6 flex items-center justify-between gap-2 px-2 md:px-3 bg-background border-t border-border/40 select-none font-sans overflow-visible">
       {/* 1. Left Section: System Status */}
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex min-w-0 items-center gap-2 md:gap-4">
         <div className={cn("flex items-center gap-1.5 transition-colors duration-300", currentStatus.color)}>
           <currentStatus.icon size={11} className={status === "running" ? "animate-spin" : ""} />
-          <span className="text-[8px] font-bold uppercase tracking-widest hidden sm:inline">{currentStatus.label}</span>
+          <span className="text-[9px] font-semibold uppercase tracking-wide hidden sm:inline">{currentStatus.label}</span>
         </div>
 
         {activeFile && (
           <div className={cn("flex items-center gap-2", isDark ? "text-muted-foreground/40" : "text-zinc-500")}>
             <div className={cn("w-px h-3 hidden sm:block", isDark ? "bg-border/60" : "bg-zinc-300")} />
-            <span className="text-[10px] font-medium italic truncate max-w-20 md:max-w-30">{activeFile.name}</span>
+            <span className="text-[10px] font-medium truncate max-w-20 md:max-w-30">{activeFile.name}</span>
           </div>
         )}
       </div>
 
       {/* 2. Right Section: Environment Info */}
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex shrink-0 items-center gap-2 md:gap-4">
+        <button
+          onClick={toggleConsole}
+          title={isConsoleCollapsed ? "Show console" : "Hide console"}
+          className={cn(
+            "flex h-5 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold uppercase tracking-normal transition-colors",
+            isConsoleCollapsed
+              ? "bg-primary/10 text-primary hover:bg-primary/15"
+              : isDark
+                ? "text-muted-foreground/60 hover:bg-muted hover:text-foreground"
+                : "text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900"
+          )}
+        >
+          <Terminal size={10} />
+          <span className="hidden sm:inline">{isConsoleCollapsed ? "Show Console" : "Console"}</span>
+        </button>
+
         {/* Language Selector */}
         <div className="relative h-full flex items-center">
           <button
@@ -83,7 +108,7 @@ export default function StatusBar() {
               setShowLangMenu(!showLangMenu)
             }}
             className={cn(
-              "flex items-center gap-1 md:gap-2 h-5 px-1.5 md:px-2 rounded-md transition-all text-[10px] font-bold tracking-tight",
+              "flex items-center gap-1 md:gap-2 h-5 px-1.5 md:px-2 rounded-md transition-all text-[10px] font-semibold tracking-normal",
               showLangMenu
                 ? "bg-primary text-primary-foreground shadow-lg"
                 : isDark
@@ -106,7 +131,7 @@ export default function StatusBar() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="px-3 py-1 mb-1 border-b border-border/50">
-                  <span className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">Environment</span>
+                  <span className="text-[9px] font-semibold text-muted-foreground/45 uppercase tracking-[0.12em]">Environment</span>
                 </div>
                 {LANGUAGES.map(lang => (
                   <button
@@ -134,7 +159,7 @@ export default function StatusBar() {
         <div className={cn("flex items-center gap-1.5", isDark ? "text-muted-foreground/40" : "text-zinc-400")}>
           <div className={cn("w-px h-3 hidden sm:block", isDark ? "bg-border/60" : "bg-zinc-300")} />
           <Monitor size={11} className="hidden sm:inline" />
-          <span className="uppercase text-[9px] font-black tracking-widest hidden md:inline">{theme}</span>
+          <span className="uppercase text-[9px] font-semibold tracking-wide hidden md:inline">{theme}</span>
         </div>
       </div>
     </footer>

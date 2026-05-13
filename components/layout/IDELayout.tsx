@@ -6,10 +6,10 @@ import CodeEditor from "@/components/editor/CodeEditor"
 import TabBar from "@/components/editor/TabBar"
 import ExecutionConsole from "@/components/console/ExecutionConsole"
 import { useExecutionStore } from "@/stores/useExecutionStore"
-import { Menu, X } from "lucide-react"
+import { PanelLeft, X } from "lucide-react"
 
 export default function IDELayout() {
-  const { isConsoleCollapsed } = useExecutionStore()
+  const { isConsoleCollapsed, isConsoleExpanded, sidebarView, setSidebarView } = useExecutionStore()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [isResizing, setIsResizing] = useState(false)
@@ -50,20 +50,19 @@ export default function IDELayout() {
     }
   }, [])
 
+  const openMobileSidebar = () => {
+    if (!sidebarOpen && !sidebarView) {
+      setSidebarView("explorer")
+    }
+    setSidebarOpen((open) => !open)
+  }
+
   return (
     <div className="h-full w-full flex bg-background overflow-hidden relative">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed top-3 left-3 z-50 md:hidden p-2 rounded-lg bg-background/90 backdrop-blur border border-border/50 shadow-lg"
-      >
-        {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="absolute inset-0 z-40 bg-black/50 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -71,12 +70,12 @@ export default function IDELayout() {
       {/* Sidebar - hidden on mobile unless opened */}
       <div
         className={`
-          fixed md:relative inset-y-0 left-0 z-50 md:z-auto
+          absolute md:relative inset-y-0 left-0 z-50 md:z-auto w-[min(92vw,360px)] md:w-auto
           transition-transform duration-200 ease-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        <Sidebar width={sidebarWidth} />
+        <Sidebar width={sidebarWidth} onRequestClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Resize Handle */}
@@ -93,6 +92,18 @@ export default function IDELayout() {
 
       {/* Main Content */}
       <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
+        <div className="flex h-11 shrink-0 items-center gap-2 border-b border-border/40 bg-background px-2 md:hidden">
+          <button
+            onClick={openMobileSidebar}
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-border/50 bg-muted/40 text-muted-foreground shadow-sm active:scale-95"
+            aria-label="Toggle sidebar"
+          >
+            {sidebarOpen ? <X size={17} /> : <PanelLeft size={17} />}
+          </button>
+          <span className="truncate text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">
+            Workspace
+          </span>
+        </div>
         <div className="flex flex-col min-h-0 flex-1">
           <TabBar />
           <div className="flex-1 min-h-0">
@@ -103,7 +114,13 @@ export default function IDELayout() {
         {!isConsoleCollapsed && (
           <>
             <div className="h-1 bg-border hover:bg-primary/50 active:bg-primary transition-colors shrink-0" />
-            <div className="shrink-0 h-[35%] min-h-25">
+            <div
+              className={
+                isConsoleExpanded
+                  ? "h-[58dvh] min-h-64 shrink-0 md:h-[62%]"
+                  : "h-[32dvh] min-h-36 shrink-0 md:h-[35%] md:min-h-25"
+              }
+            >
               <ExecutionConsole />
             </div>
           </>

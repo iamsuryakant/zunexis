@@ -7,7 +7,7 @@ import { CommandPalette } from "@/components/navigation/CommandPalette"
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col h-screen w-screen bg-background text-foreground overflow-hidden font-sans antialiased">
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-background text-foreground font-sans antialiased">
       {/* SOLID PINNED HEADER */}
       <ZunexisHeader />
 

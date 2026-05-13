@@ -3,6 +3,7 @@ import { useExecutionStore } from "@/stores/useExecutionStore";
 class CodeExecutor {
   async execute(code: string, language: string, fileId: string): Promise<void> {
     const store = useExecutionStore.getState();
+    const activeFile = store.files.find((file) => file.id === fileId);
 
     store.setStatus(fileId, "running");
     store.clearOutput(fileId);
@@ -21,36 +22,67 @@ class CodeExecutor {
       const result = await response.json();
 
       if (result.status === "error") {
-        store.addOutput(fileId, result.message || "Execution failed");
+        const message = result.message || "Execution failed";
+        store.addOutput(fileId, message);
         store.setStatus(fileId, "error");
+        store.addRunHistory({
+          fileId,
+          fileName: activeFile?.name || "Untitled",
+          language,
+          status: "error",
+          outputPreview: message,
+          time: 0,
+          memory: 0,
+        });
       } else {
         const run = result.data?.run || result.run || {};
         const stdout = run.stdout || run.output || "";
         const stderr = run.stderr || "";
         const exitCode = run.code;
-
-        if (stderr) {
-          store.addOutput(fileId, stderr);
-          store.setStatus(fileId, "error");
-        } else if (exitCode !== 0) {
-          store.addOutput(fileId, `Process exited with code ${exitCode}`);
-          store.setStatus(fileId, "error");
-        } else if (stdout) {
-          store.addOutput(fileId, stdout);
-          store.setStatus(fileId, "success");
-        } else {
-          store.addOutput(fileId, "(No output)");
-          store.setStatus(fileId, "success");
-        }
-
-        store.setMeta(fileId, {
+        const meta = {
           time: run.cpu_time || run.wall_time || 0,
           memory: run.memory || 0
+        };
+        let status: "success" | "error" = "success";
+        let output = "";
+
+        if (stderr) {
+          output = stderr;
+          status = "error";
+        } else if (exitCode !== 0) {
+          output = `Process exited with code ${exitCode}`;
+          status = "error";
+        } else if (stdout) {
+          output = stdout;
+        } else {
+          output = "(No output)";
+        }
+
+        store.addOutput(fileId, output);
+        store.setStatus(fileId, status);
+        store.setMeta(fileId, meta);
+        store.addRunHistory({
+          fileId,
+          fileName: activeFile?.name || "Untitled",
+          language,
+          status,
+          outputPreview: output,
+          ...meta,
         });
       }
     } catch (error: any) {
-      store.addOutput(fileId, `Error: ${error.message}`);
+      const message = `Error: ${error.message}`;
+      store.addOutput(fileId, message);
       store.setStatus(fileId, "error");
+      store.addRunHistory({
+        fileId,
+        fileName: activeFile?.name || "Untitled",
+        language,
+        status: "error",
+        outputPreview: message,
+        time: 0,
+        memory: 0,
+      });
     }
   }
 }

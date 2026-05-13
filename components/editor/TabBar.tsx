@@ -51,7 +51,7 @@ export default function TabBar() {
   if (openTabs.length === 0) return null
 
   return (
-    <div className="h-9 flex items-center bg-background border-b border-border/40 select-none">
+    <div className="h-10 md:h-9 flex items-center bg-background border-b border-border/40 select-none">
       
       {/* 1. Integrated Scroll Controls (Only show when overflow exists) */}
       <AnimatePresence>
@@ -80,7 +80,7 @@ export default function TabBar() {
               key={tab!.id}
               onClick={() => setActiveFile(tab!.id)}
               className={cn(
-                "group relative flex items-center gap-2 px-3 h-full cursor-pointer border-r border-border/40 min-w-[120px] max-w-[200px] transition-colors",
+                "group relative flex items-center gap-2 px-3 h-full cursor-pointer border-r border-border/40 min-w-[104px] max-w-[160px] transition-colors sm:min-w-[120px] sm:max-w-[200px]",
                 isTabActive 
                   ? "bg-background text-foreground" 
                   : "bg-muted/20 text-muted-foreground/60 hover:bg-muted/40 hover:text-muted-foreground"
@@ -114,7 +114,7 @@ export default function TabBar() {
                     }}
                     className={cn(
                       "p-0.5 rounded-sm hover:bg-accent hover:text-foreground transition-opacity",
-                      isTabActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      isTabActive ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     )}
                   >
                     <X size={11} />

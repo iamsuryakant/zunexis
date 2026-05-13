@@ -1,7 +1,14 @@
-export default function ZunexisLogo({ className = "" }: { className?: string }) {
+export default function ZunexisLogo({
+  className = "",
+  compactOnMobile = false,
+}: {
+  className?: string
+  compactOnMobile?: boolean
+}) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <svg
+        className="shrink-0"
         width="32"
         height="32"
         viewBox="0 0 120 120"
@@ -41,11 +48,15 @@ export default function ZunexisLogo({ className = "" }: { className?: string }) 
         />
       </svg>
 
-      <div className="flex flex-col leading-tight">
-        <span className="text-lg font-semibold tracking-wide text-foreground">
+      <div
+        className={`flex flex-col leading-tight whitespace-nowrap ${
+          compactOnMobile ? "hidden sm:flex" : ""
+        }`}
+      >
+        <span className="text-lg font-semibold tracking-normal text-foreground">
           Zunexis
         </span>
-        <span className="text-[10px] text-slate-500 tracking-widest">
+        <span className="text-[10px] text-slate-500 tracking-[0.12em]">
           CODE • COMPILE • EXECUTE
         </span>
       </div>
