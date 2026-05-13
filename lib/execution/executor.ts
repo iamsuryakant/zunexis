@@ -12,32 +12,41 @@ class CodeExecutor {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          source_code: code,
-          language_id: language,
+          language,
+          version: "*",
+          code,
         })
       });
 
       const result = await response.json();
 
-      if (result.status === "error" || result.stderr) {
-        store.addOutput(fileId, result.stderr || result.message || "Execution failed");
+      if (result.status === "error") {
+        store.addOutput(fileId, result.message || "Execution failed");
         store.setStatus(fileId, "error");
       } else {
-        const outputs: string[] = [];
-        if (result.stdout) outputs.push(result.stdout);
-        if (result.stderr) outputs.push(result.stderr);
+        const run = result.data?.run || result.run || {};
+        const stdout = run.stdout || run.output || "";
+        const stderr = run.stderr || "";
+        const exitCode = run.code;
 
-        store.setStatus(fileId, "success");
-        store.setMeta(fileId, {
-          time: result.time || 0,
-          memory: result.memory || 0
-        });
-
-        if (outputs.length > 0) {
-          outputs.forEach(o => store.addOutput(fileId, o));
+        if (stderr) {
+          store.addOutput(fileId, stderr);
+          store.setStatus(fileId, "error");
+        } else if (exitCode !== 0) {
+          store.addOutput(fileId, `Process exited with code ${exitCode}`);
+          store.setStatus(fileId, "error");
+        } else if (stdout) {
+          store.addOutput(fileId, stdout);
+          store.setStatus(fileId, "success");
         } else {
           store.addOutput(fileId, "(No output)");
+          store.setStatus(fileId, "success");
         }
+
+        store.setMeta(fileId, {
+          time: run.cpu_time || run.wall_time || 0,
+          memory: run.memory || 0
+        });
       }
     } catch (error: any) {
       store.addOutput(fileId, `Error: ${error.message}`);

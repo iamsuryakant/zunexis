@@ -115,7 +115,7 @@ function TreeNode({
         {isFolder ? (
           <FolderIcon className={`w-4 h-4 mr-2 shrink-0 ${expanded ? 'text-blue-400' : 'text-blue-400/70'}`} fill={expanded ? "currentColor" : "none"} />
         ) : (
-          <File className="w-4 h-4 mr-2 shrink-0 text-emerald-500/70" />
+          <File className="w-4 h-4 mr-2 shrink-0 text-green-600 dark:text-green-500" />
         )}
 
         <span className="truncate">{item.name}</span>
@@ -167,9 +167,9 @@ function TreeNode({
 function CreationInput({ type, value, onChange, onConfirm, onCancel, depth }: any) {
   return (
     <div className="flex items-center h-8 px-3" style={{ paddingLeft: `${depth * 12 + 24}px` }}>
-      {type === 'folder' ? 
-        <FolderIcon className="w-4 h-4 mr-2 text-blue-400 fill-blue-400/20" /> : 
-        <File className="w-4 h-4 mr-2 text-emerald-500" />
+      {type === 'folder' ?
+        <FolderIcon className="w-4 h-4 mr-2 text-blue-500" /> :
+        <File className="w-4 h-4 mr-2 text-green-600 dark:text-green-500" />
       }
       <input
         autoFocus

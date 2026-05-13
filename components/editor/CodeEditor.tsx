@@ -7,6 +7,47 @@ import { useExecutionStore } from "@/stores/useExecutionStore";
 import { FileCode, Layers } from "lucide-react";
 
 const THEMES: Record<string, object> = {
+  "vs-dark": {
+    base: "vs-dark",
+    inherit: true,
+    rules: [
+      { token: "comment", foreground: "6A9955" },
+      { token: "keyword", foreground: "569CD6" },
+      { token: "string", foreground: "CE9178" },
+      { token: "number", foreground: "B5CEA8" },
+      { token: "type", foreground: "4EC9B0" },
+      { token: "function", foreground: "DCDCAA" },
+      { token: "variable", foreground: "9CDCFE" },
+    ],
+    colors: {
+      "editor.background": "#1E1E1E",
+      "editor.foreground": "#D4D4D4",
+      "editorLineNumber.foreground": "#858585",
+      "editorCursor.foreground": "#AEAFAD",
+      "editor.selectionBackground": "#264F78",
+      "editor.inactiveSelectionBackground": "#3A3D41",
+    },
+  },
+  "vs-light": {
+    base: "vs",
+    inherit: true,
+    rules: [
+      { token: "comment", foreground: "008000" },
+      { token: "keyword", foreground: "0000FF" },
+      { token: "string", foreground: "A31515" },
+      { token: "number", foreground: "098658" },
+      { token: "type", foreground: "267F99" },
+      { token: "function", foreground: "795E26" },
+      { token: "variable", foreground: "001080" },
+    ],
+    colors: {
+      "editor.background": "#FFFFFF",
+      "editor.foreground": "#000000",
+      "editorLineNumber.foreground": "#237893",
+      "editorCursor.foreground": "#000000",
+      "editor.selectionBackground": "#ADD6FF",
+    },
+  },
   "github-light": {
     base: "vs",
     inherit: true,
@@ -91,11 +132,16 @@ export default function CodeEditor() {
   }
 
   const activeFile = files.find((f) => f.id === activeFileId);
+  // If no explicit editor theme is set, follow system theme
   const currentTheme = useMemo(() => {
     if (!mounted) return "github-light";
-    if (settings.editorTheme && THEMES[settings.editorTheme]) return settings.editorTheme;
+    // Only use explicit editor theme if user selected one
+    if (settings.explicitEditorTheme && settings.editorTheme && THEMES[settings.editorTheme]) {
+      return settings.editorTheme;
+    }
+    // Follow system theme
     return resolvedTheme === "dark" ? "github-dark" : "github-light";
-  }, [mounted, resolvedTheme, settings.editorTheme]);
+  }, [mounted, resolvedTheme, settings.editorTheme, settings.explicitEditorTheme]);
 
   if (!activeFile || activeFile.type !== "file" || !activeFileId) return <EmptyState />;
 

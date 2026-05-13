@@ -41,7 +41,7 @@ export default function GlobalSearch() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search files or symbols..."
-            className="w-full bg-accent/30 border border-border/40 rounded-lg py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
+            className="w-full bg-accent/30 border border-border/40 rounded-full py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
           />
         </div>
 

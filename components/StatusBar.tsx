@@ -35,12 +35,21 @@ export default function StatusBar() {
   const activeFile = files.find(f => f.id === activeFileId)
   const status = activeFileId ? statuses[activeFileId] || "idle" : "idle"
 
-  const statusConfig = {
-    idle: { label: "Ready", icon: Cpu, color: "text-muted-foreground/40" },
-    running: { label: "Executing", icon: Loader2, color: "text-primary" },
-    success: { label: "Success", icon: CheckCircle2, color: "text-emerald-500" },
-    error: { label: "Error", icon: AlertCircle, color: "text-rose-500" },
-  }
+  const isDark = theme === "dark"
+
+  const statusConfig = isDark
+    ? {
+        idle: { label: "Ready", icon: Cpu, color: "text-muted-foreground/50" },
+        running: { label: "Executing", icon: Loader2, color: "text-blue-400" },
+        success: { label: "Success", icon: CheckCircle2, color: "text-green-500" },
+        error: { label: "Error", icon: AlertCircle, color: "text-red-500" },
+      }
+    : {
+        idle: { label: "Ready", icon: Cpu, color: "text-zinc-500" },
+        running: { label: "Executing", icon: Loader2, color: "text-blue-600" },
+        success: { label: "Success", icon: CheckCircle2, color: "text-green-600" },
+        error: { label: "Error", icon: AlertCircle, color: "text-red-600" },
+      }
 
   const currentStatus = statusConfig[status as keyof typeof statusConfig] || statusConfig.idle
   const currentLang = LANGUAGES.find(l => l.key === defaultLanguage) || LANGUAGES[0]
@@ -53,12 +62,12 @@ export default function StatusBar() {
       <div className="flex items-center gap-2 md:gap-4">
         <div className={cn("flex items-center gap-1.5 transition-colors duration-300", currentStatus.color)}>
           <currentStatus.icon size={11} className={status === "running" ? "animate-spin" : ""} />
-          <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">{currentStatus.label}</span>
+          <span className="text-[8px] font-bold uppercase tracking-widest hidden sm:inline">{currentStatus.label}</span>
         </div>
 
         {activeFile && (
-          <div className="flex items-center gap-2 text-muted-foreground/30">
-            <div className="w-px h-3 bg-border/60 hidden sm:block" />
+          <div className={cn("flex items-center gap-2", isDark ? "text-muted-foreground/40" : "text-zinc-500")}>
+            <div className={cn("w-px h-3 hidden sm:block", isDark ? "bg-border/60" : "bg-zinc-300")} />
             <span className="text-[10px] font-medium italic truncate max-w-20 md:max-w-30">{activeFile.name}</span>
           </div>
         )}
@@ -77,7 +86,9 @@ export default function StatusBar() {
               "flex items-center gap-1 md:gap-2 h-5 px-1.5 md:px-2 rounded-md transition-all text-[10px] font-bold tracking-tight",
               showLangMenu
                 ? "bg-primary text-primary-foreground shadow-lg"
-                : "text-muted-foreground/60 hover:bg-muted hover:text-foreground"
+                : isDark
+                  ? "text-muted-foreground/60 hover:bg-muted hover:text-foreground"
+                  : "text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900"
             )}
           >
             <Globe size={10} className="hidden sm:inline" />
@@ -120,8 +131,8 @@ export default function StatusBar() {
         </div>
 
         {/* Theme Indicator */}
-        <div className="flex items-center gap-1.5 text-muted-foreground/30">
-          <div className="w-px h-3 bg-border/60 hidden sm:block" />
+        <div className={cn("flex items-center gap-1.5", isDark ? "text-muted-foreground/40" : "text-zinc-400")}>
+          <div className={cn("w-px h-3 hidden sm:block", isDark ? "bg-border/60" : "bg-zinc-300")} />
           <Monitor size={11} className="hidden sm:inline" />
           <span className="uppercase text-[9px] font-black tracking-widest hidden md:inline">{theme}</span>
         </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useExecutionStore } from "@/stores/useExecutionStore"
+import { useTheme } from "next-themes"
 import {
   Loader2,
   CheckCircle2,
@@ -8,120 +9,162 @@ import {
   Terminal,
   Trash2,
   Cpu,
-  Hash,
-  Minimize2,
-  Maximize2
+  Copy,
+  Clock,
+  HardDrive
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react"
 
 export default function ExecutionConsole() {
-  const { activeFileId, outputs, statuses, clearOutput, isConsoleCollapsed, toggleConsole } = useExecutionStore()
+  const { activeFileId, outputs, statuses, metas, clearOutput, isConsoleCollapsed, toggleConsole } = useExecutionStore()
+  const { resolvedTheme } = useTheme()
+  const [copied, setCopied] = useState(false)
 
   const outputLogs = activeFileId ? (outputs[activeFileId] || []) : []
   const status = activeFileId ? (statuses[activeFileId] || "idle") : "idle"
+  const meta = activeFileId ? (metas[activeFileId]) : null
 
-  const statusConfig = {
-    idle: { label: "Standby", icon: Cpu, color: "text-muted-foreground/40" },
-    running: { icon: Loader2, label: "Executing", color: "text-blue-400" },
-    success: { icon: CheckCircle2, label: "Success", color: "text-emerald-400" },
-    error: { icon: XCircle, label: "Failed", color: "text-rose-400" },
-  }
+  // Theme-specific console styling - use website theme (default to dark until resolved)
+  const isDarkTheme = resolvedTheme === "dark" || resolvedTheme === undefined
+
+  const consoleBg = isDarkTheme ? "bg-zinc-900" : "bg-zinc-100"
+  const consoleHeaderBg = isDarkTheme ? "bg-zinc-900/80" : "bg-zinc-200/80"
+  const consoleFooterBg = isDarkTheme ? "bg-zinc-900/50" : "bg-zinc-200/50"
+  const consoleText = isDarkTheme ? "text-zinc-300" : "text-zinc-700"
+  const consoleMuted = isDarkTheme ? "text-zinc-500" : "text-zinc-400"
+
+  const statusConfig = isDarkTheme
+    ? {
+        idle: { label: "Ready", icon: Cpu, color: "text-zinc-500", bg: "bg-zinc-800" },
+        running: { icon: Loader2, label: "Running", color: "text-blue-400", bg: "bg-blue-900/30" },
+        success: { icon: CheckCircle2, label: "Success", color: "text-green-500", bg: "bg-green-900/20" },
+        error: { icon: XCircle, label: "Error", color: "text-red-400", bg: "bg-red-900/30" },
+      }
+    : {
+        idle: { label: "Ready", icon: Cpu, color: "text-zinc-500", bg: "bg-zinc-200" },
+        running: { icon: Loader2, label: "Running", color: "text-blue-600", bg: "bg-blue-100" },
+        success: { icon: CheckCircle2, label: "Success", color: "text-green-600", bg: "bg-green-100" },
+        error: { icon: XCircle, label: "Error", color: "text-red-600", bg: "bg-red-100" },
+      }
 
   const current = statusConfig[status as keyof typeof statusConfig] || statusConfig.idle
 
+  const handleCopy = () => {
+    if (outputLogs.length > 0) {
+      navigator.clipboard.writeText(outputLogs.join("\n"))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
   return (
-    <div className="flex flex-col h-full bg-background/50 font-mono selection:bg-primary/30">
-      {/* Terminal Header - Refined for "Output" focus */}
-      <div className="h-9 flex items-center justify-between px-4 border-b border-white/3 bg-background/60 backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+    <div className={cn("flex flex-col h-full font-mono selection:bg-primary/30", consoleBg)}>
+      {/* Terminal Header */}
+      <div className={cn("h-9 flex items-center justify-between px-3 border-b", isDarkTheme ? "border-zinc-800" : "border-zinc-200", consoleHeaderBg)}>
+        <div className="flex items-center gap-2">
+          <div className={cn("flex items-center gap-1.5 px-2 py-0.5 rounded-full", current.bg)}>
             <current.icon
-              size={12}
+              size={11}
               className={cn(current.color, status === "running" && "animate-spin")}
             />
-            <span className={cn("text-[10px] font-bold uppercase tracking-[0.15em]", current.color)}>
+            <span className={cn("text-[9px] font-bold uppercase tracking-wide", current.color)}>
               {current.label}
             </span>
           </div>
-          <div className="h-3 w-px bg-white/10" />
-          <span className="text-[10px] text-muted-foreground/30 font-medium uppercase tracking-widest">
-            Read-Only Output
-          </span>
+          {status === "running" && (
+            <span className={cn("text-[9px] animate-pulse", consoleMuted)}>
+              Processing...
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1">
+          {meta && (
+            <div className={cn("flex items-center gap-2 px-2 text-[9px]", consoleMuted)}>
+              {meta.time > 0 && (
+                <div className="flex items-center gap-1">
+                  <Clock size={9} />
+                  <span>{meta.time}ms</span>
+                </div>
+              )}
+              {meta.memory > 0 && (
+                <div className="flex items-center gap-1">
+                  <HardDrive size={9} />
+                  <span>{(meta.memory / 1024 / 1024).toFixed(1)}MB</span>
+                </div>
+              )}
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleConsole}
-            className="h-6 w-6 text-muted-foreground/30 hover:text-foreground transition-colors rounded-md"
+            onClick={handleCopy}
+            className="h-6 w-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
           >
-            {isConsoleCollapsed ? <Maximize2 size={13} /> : <Minimize2 size={13} />}
+            {copied ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => activeFileId && clearOutput(activeFileId)}
-            className="h-6 w-6 text-muted-foreground/30 hover:text-foreground transition-colors rounded-md"
+            className="h-6 w-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
           >
-            <Trash2 size={13} />
+            <Trash2 size={12} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleConsole}
+            className="h-6 w-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+          >
+            {isConsoleCollapsed ? <Terminal size={12} className="rotate-45" /> : <Terminal size={12} className="-rotate-45" />}
           </Button>
         </div>
       </div>
 
       {/* Output Stream */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-1">
+      <div className="flex-1 overflow-y-auto p-3">
         <AnimatePresence mode="popLayout">
           {outputLogs.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center opacity-10">
-              <Terminal size={32} strokeWidth={1} />
-              <span className="text-[10px] mt-2 uppercase tracking-widest font-bold">No Output Generated</span>
+            <div className={cn("h-full flex flex-col items-center justify-center", isDarkTheme ? "text-zinc-600" : "text-zinc-400")}>
+              <Terminal size={28} strokeWidth={1} />
+              <span className="text-[10px] mt-3 uppercase tracking-widest font-medium">No output</span>
+              <span className="text-[9px] mt-1 opacity-50">Run code to see results here</span>
             </div>
           ) : (
-            <>
+            <div className="space-y-0.5">
               {outputLogs.map((log, i) => (
                 <motion.div
                   key={`${activeFileId}-${i}`}
-                  initial={{ opacity: 0, y: 2 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-start gap-3 text-[12px] group"
+                  initial={{ opacity: 0, x: -4 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-start gap-2 text-[12px]"
                 >
-                  <span className="text-muted-foreground/10 text-[10px] w-4 text-right tabular-nums select-none mt-0.5">
+                  <span className={cn("text-[10px] w-5 text-right select-none shrink-0 pt-0.5", isDarkTheme ? "text-zinc-600" : "text-zinc-400")}>
                     {i + 1}
                   </span>
-                  <div className={cn(
+                  <pre className={cn(
                     "flex-1 break-all whitespace-pre-wrap leading-relaxed",
-                    status === "error" && i === outputLogs.length - 1 ? "text-rose-400" : "text-foreground/80"
+                    status === "error" && i === outputLogs.length - 1
+                      ? (isDarkTheme ? "text-red-400" : "text-red-600")
+                      : (isDarkTheme ? "text-zinc-300" : "text-zinc-700")
                   )}>
                     {log}
-                  </div>
+                  </pre>
                 </motion.div>
               ))}
-              
-              {/* Process Finished Indicator */}
-              {status !== "running" && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="pt-4 flex items-center gap-2 text-[10px] text-muted-foreground/20 italic select-none"
-                >
-                  <Hash size={10} />
-                  <span>Process exited with status: {status}</span>
-                </motion.div>
-              )}
-            </>
+            </div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Metadata Footer */}
-      <div className="h-6 px-4 flex items-center justify-between border-t border-white/2 bg-black/10">
-        <div className="flex items-center gap-4 text-[9px] font-bold text-muted-foreground/20 uppercase tracking-tighter">
-          <span>Logs: {outputLogs.length}</span>
-          <span>Buffer: Raw Text</span>
-        </div>
+      {/* Footer */}
+      <div className={cn("h-5 px-3 flex items-center justify-between border-t text-[9px]", isDarkTheme ? "border-zinc-800 bg-zinc-900/50 text-zinc-500" : "border-zinc-300 bg-zinc-100 text-zinc-600")}>
+        <span>{outputLogs.length} line{outputLogs.length !== 1 ? "s" : ""}</span>
+        <span className="uppercase tracking-wider">Output</span>
       </div>
     </div>
   )

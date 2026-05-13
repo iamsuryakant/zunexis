@@ -95,15 +95,15 @@ export default function IDELayout() {
       <div className="flex-1 h-full flex flex-col overflow-hidden min-w-0">
         <div className="flex flex-col min-h-0 flex-1">
           <TabBar />
-          <div className="flex-1 min-h-0 bg-background">
+          <div className="flex-1 min-h-0">
             <CodeEditor />
           </div>
         </div>
 
         {!isConsoleCollapsed && (
           <>
-            <div className="h-1 cursor-row-resize bg-transparent hover:bg-primary/30 active:bg-primary/50 transition-colors shrink-0" />
-            <div className="bg-card border-t border-border/30 shrink-0 h-[35%] min-h-25">
+            <div className="h-1 bg-border hover:bg-primary/50 active:bg-primary transition-colors shrink-0" />
+            <div className="shrink-0 h-[35%] min-h-25">
               <ExecutionConsole />
             </div>
           </>

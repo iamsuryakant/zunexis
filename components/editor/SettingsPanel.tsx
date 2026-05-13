@@ -5,7 +5,11 @@ import { Code2, Palette as PaletteIcon, Type, Sliders } from "lucide-react"
 import { useTheme } from "next-themes"
 import { LANGUAGES } from "@/lib/languages"
 
+const DARK_THEMES = ["vs-dark", "github-dark", "monokai", "dracula", "tomorrow-night", "solarized-dark", "twilight", "terminal"]
+
 const THEMES = [
+  "vs-dark",
+  "vs-light",
   "github-dark",
   "github-light",
   "monokai",
@@ -20,8 +24,6 @@ const THEMES = [
   "eclipse",
 ]
 
-const DARK_THEMES = ["github-dark", "monokai", "dracula", "tomorrow-night", "solarized-dark", "twilight", "terminal"]
-
 export default function SettingsPanel() {
   const { settings, updateSettings, defaultLanguage, setDefaultLanguage } = useExecutionStore()
   const { setTheme } = useTheme()
@@ -29,7 +31,7 @@ export default function SettingsPanel() {
   const fontSizes = [12, 13, 14, 15, 16, 18]
 
   const handleThemeChange = (themeId: string) => {
-    updateSettings({ editorTheme: themeId })
+    updateSettings({ editorTheme: themeId, explicitEditorTheme: true })
     // Sync website theme with editor theme
     if (DARK_THEMES.includes(themeId)) {
       setTheme("dark")

@@ -21,36 +21,46 @@ export default function Sidebar({ width = 256 }: SidebarProps) {
     settings: "Editor Settings",
   }
 
+  const handleViewClick = (view: string) => {
+    // Toggle: if clicking on already active view, close it
+    if (sidebarView === view) {
+      setSidebarView("")
+    } else {
+      setSidebarView(view)
+    }
+  }
+
   return (
     <div className="flex h-full w-full">
       {/* --- Activity Bar (Icon Strip) --- */}
       <nav className="w-12 flex flex-col items-center py-4 gap-4 bg-background border-r border-border/40 z-20">
         <ActivityIcon
           active={sidebarView === 'explorer'}
-          onClick={() => setSidebarView('explorer')}
+          onClick={() => handleViewClick('explorer')}
           icon={<Files size={20} />}
           label="Explorer"
         />
         <ActivityIcon
           active={sidebarView === 'search'}
-          onClick={() => setSidebarView('search')}
+          onClick={() => handleViewClick('search')}
           icon={<Search size={20} />}
           label="Search"
         />
         <div className="flex-1" />
         <ActivityIcon
           active={sidebarView === 'settings'}
-          onClick={() => setSidebarView('settings')}
+          onClick={() => handleViewClick('settings')}
           icon={<Settings size={20} />}
           label="Settings"
         />
       </nav>
 
       {/* --- Sidebar Panel --- */}
-      <aside
-        className="flex flex-col h-full bg-background/50 backdrop-blur-sm border-r border-border/40 select-none overflow-hidden"
-        style={{ width }}
-      >
+      {sidebarView && (
+        <aside
+          className="flex flex-col h-full bg-background/50 backdrop-blur-sm border-r border-border/40 select-none overflow-hidden"
+          style={{ width }}
+        >
         {/* Dynamic Header */}
         <div className="flex h-12 items-center justify-between px-4 border-b border-border/10">
           <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
@@ -96,6 +106,7 @@ export default function Sidebar({ width = 256 }: SidebarProps) {
           </AnimatePresence>
         </div>
       </aside>
+      )}
     </div>
   )
 }

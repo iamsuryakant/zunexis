@@ -14,6 +14,7 @@ export interface Settings {
   fontFamily: string;
   lineHeight: number;
   editorTheme: string;
+  explicitEditorTheme: boolean;
 }
 
 export interface StoreType {
@@ -126,6 +127,7 @@ export const useExecutionStore = create<StoreType>()(
         fontFamily: "JetBrains Mono",
         lineHeight: 1.6,
         editorTheme: "",
+        explicitEditorTheme: false,
       },
 
       // File System
@@ -256,10 +258,8 @@ export const useExecutionStore = create<StoreType>()(
         const state = get();
         if (!state.activeFileId) return;
 
-        // Auto-open console if collapsed
-        if (state.isConsoleCollapsed) {
-          set({ isConsoleCollapsed: false });
-        }
+        // Always open console when running (ensure it's always visible)
+        set({ isConsoleCollapsed: false });
 
         const activeFile = state.files.find((f) => f.id === state.activeFileId);
         if (!activeFile || activeFile.type !== "file") return;
@@ -273,7 +273,7 @@ export const useExecutionStore = create<StoreType>()(
 
         await codeExecutor.execute(
           activeFile.code || "",
-          String(lang.judgeId),
+          activeFile.language || "javascript",
           state.activeFileId,
         );
       },
@@ -312,6 +312,7 @@ export const useExecutionStore = create<StoreType>()(
           fontFamily: state.settings.fontFamily,
           lineHeight: state.settings.lineHeight,
           editorTheme: state.settings.editorTheme,
+          explicitEditorTheme: state.settings.explicitEditorTheme,
         },
       }),
     },
