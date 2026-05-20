@@ -114,8 +114,6 @@ export default function FileExplorer() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
 
-      // FIX:
-      // Ignore Monaco editor keyboard events
       if (
         target?.closest(".monaco-editor") ||
         target?.tagName === "INPUT" ||
@@ -240,7 +238,6 @@ export default function FileExplorer() {
 }
 
 // --- Sub-Component: TreeNode ---
-// This is what was missing from your scope!
 function TreeNode({
   item,
   depth,
@@ -265,6 +262,7 @@ function TreeNode({
   createError,
   handleCreate,
   renameConfirmed,
+  createConfirmed,
   onRemove,
 }: any) {
   const [expanded, setExpanded] = useState(true);
@@ -310,11 +308,11 @@ function TreeNode({
           onClick={handleToggle}
           className={`
             group relative flex items-center h-9 cursor-pointer select-none px-2 transition-colors
-            ${isActive || isSelected ? "bg-primary/10 text-primary font-medium" : "hover:bg-accent/50 text-muted-foreground hover:text-foreground"}
+            ${isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-accent/50 text-muted-foreground hover:text-foreground"}
           `}
           style={{ paddingLeft: `${depth * 12 + 12}px` }}
         >
-          {(isActive || isSelected) && (
+          {isActive && (
             <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" />
           )}
 
