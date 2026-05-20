@@ -1,301 +1,216 @@
-# ⚡ Zunexis
+# Zunexis
 
-> A modern, multi-tab, browser-based JavaScript playground with real-time execution streaming and sandboxed worker isolation.
+A modern browser-based multi-language IDE built with Next.js, Monaco Editor, and a server-powered execution engine.
 
-Zunexis is a fast, secure, and extensible in-browser IDE built using Next.js App Router, Monaco Editor, Web Workers, and Zustand. It simulates a real execution environment while ensuring performance, safety, and scalability.
-
----
-
-## 🚀 Overview
-
-Zunexis is a JavaScript-first online IDE designed to:
-
-- Execute user code safely inside the browser
-- Stream console logs in real time
-- Support asynchronous behavior
-- Prevent infinite loops from crashing the UI
-- Provide a clean, modern development experience
-
-The system is built with scalability in mind and is structured to evolve into a full multi-language cloud execution platform.
+Zunexis provides a clean coding experience directly in the browser with support for multiple programming languages, workspace management, keyboard shortcuts, and real-time code execution.
 
 ---
 
-## ✨ Features
+# ✨ Features
 
-### 🧠 Multi-Tab Execution
-- Create unlimited tabs
-- Each tab maintains independent:
-  - Code
-  - Output
-  - Execution status
-- Switch between tabs instantly
+## 🧠 Monaco Editor Integration
 
-### ⚡ Real-Time Console Streaming
-- Logs appear immediately
-- Supports:
-  - `console.log`
-  - `console.error`
-  - `console.warn`
-  - `console.clear`
-- Output streams live from Web Worker
-
-### 🔒 Secure Execution Sandbox
-- Every run spawns a new Web Worker
-- No persistent execution process
-- No DOM access
-- No UI thread blocking
-
-### ⏱ Execution Protection
-- Hard 3-second timeout
-- Infinite loop safe
-- Log memory cap (1000 logs)
-- Worker auto-termination
-
-### 🔁 Async Support
-- `setTimeout`
-- `setInterval`
-- Promises
-- Async functions
-
-### 🪟 Flexible Layout
-- Resizable panels
-- Console placement:
-  - Bottom
-  - Left
-  - Right
-
-### 🎨 Modern UI
-- Light / Dark theme
-- Shadcn UI components
-- TailwindCSS styling
-- Clean, minimal interface
+* Monaco-powered code editor
+* Multi-tab editing
+* Custom autocomplete/snippet support
+* Keyboard shortcuts
+* Theme support
+* Adjustable editor settings
+* Responsive editor layout
 
 ---
 
-## 🏗 Architecture Overview
+## 🚀 Multi-Language Execution
 
-Execution Flow:
+Execute code using a backend execution engine.
 
-User Code  
-↓  
-Monaco Editor  
-↓  
-Run Button  
-↓  
-New Web Worker (per execution)  
-↓  
-Live Log Streaming  
-↓  
-Zustand State Update  
-↓  
-Realtime Console Rendering  
+### Supported Languages
 
-### Execution Lifecycle
-
-Each run:
-
-1. Creates a fresh Web Worker
-2. Executes user code in isolation
-3. Streams logs in real time
-4. Terminates immediately when finished
-5. Force-kills after 3 seconds if still running
-
-This prevents:
-
-- UI freezing
-- Memory overflow
-- Infinite loops
-- Zombie processes
+* JavaScript
+* TypeScript
+* Python
+* Java
+* C++
+* C
+* Go
+* Rust
+* Ruby
 
 ---
 
-## 🛠 Tech Stack
+## 📂 File Explorer & Workspace
 
-| Layer            | Technology |
-|------------------|------------|
-| Framework        | Next.js (App Router) |
-| Editor           | Monaco Editor |
-| State Management | Zustand |
-| Styling          | TailwindCSS |
-| UI Components    | Shadcn UI |
-| Execution Engine | Web Workers |
-| Icons            | Lucide |
-| Language         | JavaScript (JS-first architecture) |
+* Nested folder structure
+* File explorer
+* Create files & folders
+* Rename/Delete support
+* Active tab management
+* Persistent workspace state
 
 ---
 
-## 📂 Project Structure
+## ⚡ Developer Experience
 
-```
-app/
-  layout.tsx
-  page.tsx
+* Command palette
+* Keyboard navigation
+* Output console
+* Dark/Light theme support
+* Persistent editor preferences
+* Responsive UI
+* Smooth animations
 
-components/
-  editor/
-    CodeEditor.tsx
-    TabBar.tsx
-  console/
-    ExecutionConsole.tsx
-  shell/
-    ZunexisHeader.tsx
-    AppShell.tsx
+---
 
-store/
-  useExecutionStore.ts
+# 🏗️ Tech Stack
 
-public/
-  codeWorker.js
+## Frontend
+
+* Next.js
+* React
+* TypeScript
+* Tailwind CSS
+* Framer Motion
+* Zustand
+* Monaco Editor
+
+## Execution Engine
+
+* Server-powered code execution
+* Multi-language runtime support
+* Remote execution architecture
+
+---
+
+# ⚙️ Architecture
+
+Zunexis uses a server-based execution architecture for multi-language code execution.
+
+```text
+Frontend (Next.js + Monaco Editor)
+        ↓
+Execution API
+        ↓
+Backend Runtime Environment
+        ↓
+Compiler / Interpreter
 ```
 
----
+This architecture enables:
 
-## 🔐 Execution Safety Model
-
-Zunexis uses a defensive execution strategy:
-
-- Worker-based sandbox
-- No global window access
-- No DOM access
-- Log cap to prevent memory overflow
-- Timeout-based hard kill
-- Worker recreated per execution
-
-This ensures malicious or poorly written code does not break the UI.
+* Multi-language execution
+* Better scalability
+* Consistent runtime behavior
+* Centralized execution handling
 
 ---
 
-## 🧪 Example Usage
+# ⌨️ Keyboard Shortcuts
 
-### Simple Log
-
-```js
-console.log("Hello Zunexis 🚀")
-```
-
-### Async Example
-
-```js
-setTimeout(() => {
-  console.log("Async works!")
-}, 1000)
-```
-
-### Infinite Loop Protection
-
-```js
-while (true) {}
-```
-
-→ Automatically terminated after 3 seconds.
+| Shortcut     | Action           |
+| ------------ | ---------------- |
+| Ctrl + Enter | Run code         |
+| Cmd + Enter  | Run code (macOS) |
+| F2           | Rename file      |
+| Enter        | Open file/folder |
 
 ---
 
-## ▶️ Getting Started
+# 📦 Installation
 
-### 1️⃣ Clone Repository
+## Clone Repository
 
 ```bash
-git clone https://github.com/your-username/zunexis.git
+git clone https://github.com/iamsuryakant/zunexis.git
+```
+
+```bash
 cd zunexis
 ```
 
-### 2️⃣ Install Dependencies
+---
+
+# 🚀 Run Frontend
 
 ```bash
 npm install
 ```
 
-### 3️⃣ Run Development Server
-
 ```bash
 npm run dev
 ```
 
-### 4️⃣ Open in Browser
+---
 
+# 🌐 Backend Execution
+
+Zunexis uses backend-based code execution instead of browser-based local execution.
+
+Make sure the execution server is configured and running before executing code.
+
+---
+
+# 📁 Project Structure
+
+```text
+src/
+├── app/
+├── components/
+├── stores/
+├── lib/
+├── hooks/
+├── core/
+└── styles/
 ```
-http://localhost:3000
-```
 
 ---
 
-## 🧠 Why Web Workers?
+# 🛠️ Current Capabilities
 
-Web Workers allow:
-
-- Parallel execution
-- UI thread protection
-- True sandbox isolation
-- Safe process termination
-
-This simulates real backend execution behavior directly in the browser.
-
----
-
-## 🎯 Roadmap
-
-### Phase 1 (Current)
-- ✅ Multi-tab support
-- ✅ JS execution sandbox
-- ✅ Async support
-- ✅ Execution timeout protection
-- ✅ Streaming console
-- ✅ Layout switcher
-
-## 🔮 Future Vision
-
-Zunexis is designed as a foundation for:
-
-- Online coding platform
-- Interview practice environment
-- Competitive coding playground
-- Secure remote execution service
-- Cloud-based IDE infrastructure
-
-The current JS-first architecture is intentionally built to scale toward a Docker-based backend execution model.
+* Multi-language execution
+* Monaco editor integration
+* File explorer
+* Workspace persistence
+* Command palette
+* Output console
+* Editor customization
+* Theme management
 
 ---
 
-## 🧩 Design Philosophy
+# 🔮 Planned Improvements
 
-Zunexis focuses on:
-
-- Simplicity
-- Safety
-- Performance
-- Extensibility
-
-Instead of building a bloated IDE, it builds a clean execution engine that can evolve into a scalable backend-powered system.
+* AI-assisted features
+* Split editor support
+* Git integration
+* Improved terminal support
+* Collaborative editing
+* LSP integration
 
 ---
 
-## 👨‍💻 Author
+# 🤝 Contributing
 
-Suryakant Thakur (Full Stack Developer)
+Contributions, issues, and feature requests are welcome.
+
+Feel free to fork the repository and submit a pull request.
 
 ---
 
-## 📄 License
+# 📄 License
 
 MIT License
 
 ---
 
-## ⭐ Support
+# 👨‍💻 Author
 
-If you like this project:
+Developed by Suryakant
 
-- ⭐ Star the repository
-- 🐛 Open issues
-- 💡 Suggest features
-- 🤝 Contribute improvements
+GitHub:
+[https://github.com/iamsuryakant](https://github.com/iamsuryakant)
 
 ---
 
-## 🏁 Final Note
+# ⭐ Repository
 
-Zunexis is not just a playground —  
-it is a foundation for a future multi-language cloud IDE.
-
-Stay tuned.
+[https://github.com/iamsuryakant/zunexis](https://github.com/iamsuryakant/zunexis)
