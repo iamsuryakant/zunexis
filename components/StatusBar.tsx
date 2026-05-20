@@ -22,6 +22,7 @@ export default function StatusBar() {
     files,
     activeFileId,
     statuses,
+    saveState,
     defaultLanguage,
     setDefaultLanguage,
     isConsoleCollapsed,
@@ -80,6 +81,16 @@ export default function StatusBar() {
             <span className="text-[10px] font-medium truncate max-w-20 md:max-w-30">{activeFile.name}</span>
           </div>
         )}
+        <div className={cn("hidden items-center gap-1.5 sm:flex", saveState === "saving" ? "text-primary" : isDark ? "text-muted-foreground/40" : "text-zinc-500")}>
+          {saveState === "saving" ? (
+            <Loader2 size={10} className="animate-spin" />
+          ) : (
+            <CheckCircle2 size={10} />
+          )}
+          <span className="text-[9px] font-semibold uppercase tracking-wide">
+            {saveState === "saving" ? "Saving" : "Saved"}
+          </span>
+        </div>
       </div>
 
       {/* 2. Right Section: Environment Info */}

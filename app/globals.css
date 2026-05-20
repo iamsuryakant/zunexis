@@ -10,9 +10,10 @@
   --color-card: #f4f4f5;
   --color-card-hover: #e4e4e7;
 
-  /* Accessible green - darker for better contrast */
-  --color-primary: #16a34a;
+  --color-primary: #0284c7;
   --color-primary-foreground: #ffffff;
+  --color-success: #16a34a;
+  --color-success-foreground: #ffffff;
 
   --color-muted: #f4f4f5;
   --color-muted-foreground: #71717a;
@@ -43,9 +44,10 @@ html.dark {
   --color-card: #111113;
   --color-card-hover: #161618;
 
-  /* Dark mode primary - slightly brighter but still accessible */
-  --color-primary: #22c55e;
+  --color-primary: #38bdf8;
   --color-primary-foreground: #000000;
+  --color-success: #22c55e;
+  --color-success-foreground: #000000;
 
   --color-muted: #18181b;
   --color-muted-foreground: #a1a1aa;

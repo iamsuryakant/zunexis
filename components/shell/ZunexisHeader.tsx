@@ -62,8 +62,8 @@ export default function ZunexisHeader() {
           className={cn(
             "h-8 w-8 rounded-full border border-transparent p-0 transition-colors duration-150 font-bold text-[10px] uppercase shadow-none sm:h-8 sm:w-[92px] sm:px-3 sm:tracking-[0.05em]",
             isRunning
-              ? "bg-primary/10 text-primary border border-primary/20"
-              : "bg-primary hover:brightness-110 text-primary-foreground shadow-[0_0_15px_rgba(74,222,128,0.1)]",
+              ? "bg-success/10 text-success border border-success/20"
+              : "bg-success hover:brightness-110 text-success-foreground shadow-[0_0_15px_rgba(74,222,128,0.1)]",
           )}
         >
           <div className="flex w-full items-center justify-center gap-2">

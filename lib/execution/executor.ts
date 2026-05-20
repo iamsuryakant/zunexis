@@ -31,6 +31,7 @@ class CodeExecutor {
           language,
           status: "error",
           outputPreview: message,
+          output: message,
           time: 0,
           memory: 0,
         });
@@ -67,6 +68,7 @@ class CodeExecutor {
           language,
           status,
           outputPreview: output,
+          output,
           ...meta,
         });
       }
@@ -80,6 +82,7 @@ class CodeExecutor {
         language,
         status: "error",
         outputPreview: message,
+        output: message,
         time: 0,
         memory: 0,
       });

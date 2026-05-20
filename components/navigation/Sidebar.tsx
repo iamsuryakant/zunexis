@@ -80,10 +80,12 @@ export default function Sidebar({ width = 256, onRequestClose }: SidebarProps) {
                 <HeaderAction
                   onClick={() => setCreating({ parentId: 'root', type: 'file' })}
                   icon={<FilePlus size={14} />}
+                  title="New file"
                 />
                 <HeaderAction
                   onClick={() => setCreating({ parentId: 'root', type: 'folder' })}
                   icon={<FolderPlus size={14} />}
+                  title="New folder"
                 />
               </motion.div>
             )}
@@ -135,11 +137,12 @@ function ActivityIcon({ active, onClick, icon, label }: any) {
   )
 }
 
-function HeaderAction({ onClick, icon }: { onClick: () => void; icon: React.ReactNode }) {
+function HeaderAction({ onClick, icon, title }: { onClick: () => void; icon: React.ReactNode; title: string }) {
   return (
     <button
       onClick={onClick}
-      className="p-1.5 rounded-lg text-muted-foreground/60 hover:bg-white/[0.05] hover:text-foreground transition-all active:scale-90"
+      title={title}
+      className="p-1.5 rounded-lg text-muted-foreground/60 hover:bg-accent hover:text-foreground transition-all active:scale-90"
     >
       {icon}
     </button>

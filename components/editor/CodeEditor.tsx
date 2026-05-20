@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Editor } from "@monaco-editor/react";
 import { useTheme } from "next-themes";
 import { useExecutionStore } from "@/stores/useExecutionStore";
@@ -132,10 +132,16 @@ const getEditorFontFamily = (fontFamily?: string) => {
 };
 
 export default function CodeEditor() {
-  const { files, activeFileId, updateFileCode, executeCode, settings } = useExecutionStore();
+  const { files, activeFileId, updateFileCode, executeCode, settings, saveState, setSaveState } = useExecutionStore();
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (saveState !== "saving") return;
+    const timeout = window.setTimeout(() => setSaveState("saved"), 650);
+    return () => window.clearTimeout(timeout);
+  }, [saveState, setSaveState]);
 
   if (typeof window !== "undefined" && !mounted) {
     setMounted(true);

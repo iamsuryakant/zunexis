@@ -16,6 +16,7 @@ export interface RunHistoryEntry {
   language: string;
   status: "success" | "error";
   outputPreview: string;
+  output: string;
   time: number;
   memory: number;
   createdAt: number;
@@ -60,6 +61,7 @@ export interface StoreType {
   openFileIds: string[];
   activeFileId: string | null;
   selectedNodeId: string | null;
+  saveState: "saved" | "saving";
 
   // Execution
   outputs: Record<string, string[]>;
@@ -69,17 +71,20 @@ export interface StoreType {
 
   // File Actions
   setActiveFile: (id: string) => void;
+  setSelectedNode: (id: string | null) => void;
   openFile: (id: string) => void;
   closeTab: (id: string) => void;
   toggleFolder: (id: string) => void;
   deleteNode: (id: string) => void;
+  renameNode: (id: string, name: string) => { success: boolean; error?: string };
   createNode: (
     id: string,
     parentId: string,
     name: string,
     type: string,
-  ) => void;
+  ) => { success: boolean; error?: string };
   updateFileCode: (id: string, code: string) => void;
+  setSaveState: (state: "saved" | "saving") => void;
 
   // Execution Actions
   executeCode: () => Promise<void>;
@@ -120,6 +125,8 @@ const extMap: Record<string, string> = {
   rust: ".rs",
   ruby: ".rb",
 };
+
+const normalizeName = (name: string) => name.trim().toLowerCase();
 
 export const useExecutionStore = create<StoreType>()(
   persist(
@@ -167,6 +174,7 @@ export const useExecutionStore = create<StoreType>()(
       openFileIds: [],
       activeFileId: null,
       selectedNodeId: null,
+      saveState: "saved",
 
       // Execution
       outputs: {},
@@ -176,6 +184,7 @@ export const useExecutionStore = create<StoreType>()(
 
       // File Actions
       setActiveFile: (id: string) => set({ activeFileId: id }),
+      setSelectedNode: (id: string | null) => set({ selectedNodeId: id }),
 
       openFile: (id: string) =>
         set((s) => {
@@ -209,11 +218,63 @@ export const useExecutionStore = create<StoreType>()(
         })),
 
       deleteNode: (id: string) =>
+        set((s) => {
+          const collectIds = (nodeId: string, files: FileNode[]): string[] => {
+            const children = files.filter((file) => file.parentId === nodeId);
+            return [
+              nodeId,
+              ...children.flatMap((child) => collectIds(child.id, files)),
+            ];
+          };
+          const deletedIds = new Set(collectIds(id, s.files));
+          const openFileIds = s.openFileIds.filter((fid) => !deletedIds.has(fid));
+
+          return {
+            files: s.files.filter((f) => !deletedIds.has(f.id)),
+            openFileIds,
+            activeFileId: s.activeFileId && deletedIds.has(s.activeFileId)
+              ? openFileIds[openFileIds.length - 1] || null
+              : s.activeFileId,
+            selectedNodeId: s.selectedNodeId && deletedIds.has(s.selectedNodeId)
+              ? null
+              : s.selectedNodeId,
+          };
+        }),
+
+      renameNode: (id: string, name: string): { success: boolean; error?: string } => {
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+          return { success: false, error: "Name is required." };
+        }
+
+        const { files } = get();
+        const node = files.find((file) => file.id === id);
+        if (!node) {
+          return { success: false, error: "Item was not found." };
+        }
+
+        const duplicate = files.some(
+          (file) =>
+            file.id !== id &&
+            file.parentId === node.parentId &&
+            normalizeName(file.name) === normalizeName(trimmedName),
+        );
+
+        if (duplicate) {
+          return {
+            success: false,
+            error: `"${trimmedName}" already exists in this folder.`,
+          };
+        }
+
         set((s) => ({
-          files: s.files.filter((f) => f.id !== id),
-          openFileIds: s.openFileIds.filter((fid) => fid !== id),
-          activeFileId: s.activeFileId === id ? null : s.activeFileId,
-        })),
+          files: s.files.map((file) =>
+            file.id === id ? { ...file, name: trimmedName } : file,
+          ),
+        }));
+
+        return { success: true };
+      },
 
       updateSettings: (newSettings: any) =>
         set((state: any) => ({
@@ -225,8 +286,9 @@ export const useExecutionStore = create<StoreType>()(
         parentId: string,
         name: string,
         type: string,
-      ) => {
+      ): { success: boolean; error?: string } => {
         const { files, defaultLanguage } = get();
+
         let fileName = name;
         let fileLang = defaultLanguage;
 
@@ -256,6 +318,19 @@ export const useExecutionStore = create<StoreType>()(
           }
         }
 
+        const duplicate = files.some(
+          (file) =>
+            file.parentId === parentId &&
+            normalizeName(file.name) === normalizeName(fileName),
+        );
+
+        if (duplicate) {
+          return {
+            success: false,
+            error: `"${fileName}" already exists in this folder.`,
+          };
+        }
+
         const newFile: FileNode = {
           id,
           name: fileName,
@@ -267,12 +342,16 @@ export const useExecutionStore = create<StoreType>()(
           isOpen: false,
         };
         set({ files: [...files, newFile] });
+        return { success: true };
       },
 
       updateFileCode: (id: string, code: string) =>
         set((s) => ({
           files: s.files.map((f) => (f.id === id ? { ...f, code } : f)),
+          saveState: "saving",
         })),
+
+      setSaveState: (saveState) => set({ saveState }),
 
       // Execution Actions using Judge0 API
       executeCode: async () => {
